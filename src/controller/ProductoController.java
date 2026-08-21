@@ -1,7 +1,7 @@
-package Controller;
+package controller;
 
-import Model.IActualizableProducto;
-import Model.Producto;
+import model.IActualizableProducto;
+import model.Producto;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +11,7 @@ public class ProductoController {
 
     public static void agregarProducto(Producto producto) throws RuntimeException {
         if (producto != null) {
-            if (producto.validarProducto()) {
+            if (producto.setIdProducto() {
                 if (!existeId(producto.getIdProducto())) {
                     productos.add(producto);
                     System.out.println("Producto agregado correctamente");

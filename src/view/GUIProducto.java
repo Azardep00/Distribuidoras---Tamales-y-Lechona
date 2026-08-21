@@ -11,7 +11,7 @@ public class GUIProducto extends JFrame {
 
     private JTextField txtId, txtNombre, txtDescripcion, txtPrecio, txtStock;
     private JComboBox<String> cbTipoProducto;
-    private JComboBox<TipoTamal> cbTipoTamal;
+    private JComboBox<Model.TipoTamal> cbTipoTamal;
     private JComboBox<TamañoTamal> cbTamañoTamal;
     private JComboBox<TamañoLechona> cbTamañoLechona;
     private JTextField txtNumeroPorciones;
