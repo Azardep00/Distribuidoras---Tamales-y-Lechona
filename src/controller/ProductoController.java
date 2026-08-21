@@ -11,15 +11,11 @@ public class ProductoController {
 
     public static void agregarProducto(Producto producto) throws RuntimeException {
         if (producto != null) {
-            if (producto.setIdProducto() {
-                if (!existeId(producto.getIdProducto())) {
-                    productos.add(producto);
-                    System.out.println("Producto agregado correctamente");
-                } else {
-                    throw new RuntimeException("Error: Ya existe un producto con ese ID");
-                }
+            if (!existeId(producto.getIdProducto())) {
+                productos.add(producto);
+                System.out.println("Producto agregado correctamente");
             } else {
-                throw new RuntimeException("Error: campos invalidos para el producto");
+                throw new RuntimeException("Error: Ya existe un producto con ese ID");
             }
         } else {
             throw new RuntimeException("Error: producto nulo");
@@ -74,30 +70,32 @@ public class ProductoController {
 
     public static void actualizarProducto(Producto producto) {
         boolean actualizo = false;
+
         for (Producto p : productos) {
             if (p.getIdProducto() == producto.getIdProducto()) {
                 p.setNombre(producto.getNombre());
                 p.setDescripcion(producto.getDescripcion());
                 p.actualizarPrecio(producto.getPrecio());
                 p.cambiarEstado(producto.isEstado());
+
                 // Datos específicos del subtipo
                 if (p instanceof IActualizableProducto) {
                     IActualizableProducto actualizable = (IActualizableProducto) p;
                     actualizable.actualizarDatos(producto);
                 }
+
                 System.out.println("Producto actualizado");
                 actualizo = true;
                 break;
             }
         }
+
         if (!actualizo) {
             System.out.println("No se encontro un producto con ese ID");
         }
     }
-
-    // Bonus: expone consultarDisponibilidad, que ya viene del modelo
-    public static boolean consultarDisponibilidad(int idProducto) {
+    public static boolean consultarDisponibilidad(int idProducto, int cantidadRequerida) {
         Producto producto = buscarProducto(idProducto);
-        return producto != null && producto.consultarDisponibilidad();
+        return producto != null && producto.consultarDisponibilidad(cantidadRequerida);
     }
 }
