@@ -47,4 +47,9 @@ public class Tamal extends Producto implements IActualizableProducto {
             this.tamaño = tamal.getTamaño();
         }
     }
+
+    @Override
+    public BigDecimal calcularPrecio() {
+        return getPrecio();
+    }
 }

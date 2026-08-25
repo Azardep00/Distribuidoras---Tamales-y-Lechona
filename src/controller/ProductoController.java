@@ -13,7 +13,6 @@ public class ProductoController {
         if (producto != null) {
             if (!existeId(producto.getIdProducto())) {
                 productos.add(producto);
-                System.out.println("Producto agregado correctamente");
             } else {
                 throw new RuntimeException("Error: Ya existe un producto con ese ID");
             }
@@ -22,7 +21,7 @@ public class ProductoController {
         }
     }
 
-    public List<Producto> listarProductos() {
+    public static List<Producto> listarProductos() {
         return productos;
     }
 

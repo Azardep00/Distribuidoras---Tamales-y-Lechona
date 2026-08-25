@@ -43,4 +43,9 @@ public class Lechona extends Producto implements IActualizableProducto{
             this.numeroPorciones = lechona.getNumeroPorciones();
         }
     }
+
+    @Override
+    public BigDecimal calcularPrecio() {
+        return getPrecio();
+    }
 }
