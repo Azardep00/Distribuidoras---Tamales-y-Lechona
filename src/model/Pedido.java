@@ -16,15 +16,14 @@ public class Pedido
     private MetodoPago metodoPago;
     private String direccionEntrega;
     private LocalDateTime fechaEntrega;
-    private Cliente cliente;
-    private Empleado empleado;
+
     private List<DetallePedido> detalles;
 
     // ===== CONSTRUCTOR =====
-    public Pedido(int idPedido, Cliente cliente, MetodoPago metodoPago, String direccionEntrega)
+    public Pedido(int idPedido, MetodoPago metodoPago, String direccionEntrega)
     {
         this.idPedido = idPedido;
-        this.cliente = cliente;
+
         this.fecha = LocalDateTime.now();
         this.estado = EstadoPedido.PENDIENTE;
         this.total = 0.0;
@@ -32,7 +31,6 @@ public class Pedido
         this.metodoPago = metodoPago;
         this.direccionEntrega = direccionEntrega;
         this.fechaEntrega = null;
-        this.empleado = null;
         this.detalles = new ArrayList<>();
     }
 
@@ -54,9 +52,6 @@ public class Pedido
 
     public LocalDateTime getFechaEntrega() { return fechaEntrega; }
 
-    public Cliente getCliente() { return cliente; }
-
-    public Empleado getEmpleado() { return empleado;}
 
     public List<DetallePedido> getDetalles() { return new ArrayList<>(detalles); }
 
@@ -100,8 +95,6 @@ public class Pedido
         this.fechaEntrega = LocalDateTime.now();
     }
 
-    public void asignarEmpleado(Empleado empleado) {
-        this.empleado = empleado;
-    }
+
 
 }
