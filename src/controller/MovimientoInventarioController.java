@@ -2,20 +2,22 @@ package controller;
 
 import model.MovimientoInventario;
 import model.TipoMovimiento;
+import repository.IMovimientoInventarioRepository;
 
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * PRINCIPIO SRP: ya no imprime en consola (eso lo hace view.MovimientoInventarioView).
+ * PRINCIPIO DIP: depende de IMovimientoInventarioRepository, no de un ArrayList concreto.
+ */
 public class MovimientoInventarioController {
 
-    private ArrayList<MovimientoInventario> movimientos;
+    private final IMovimientoInventarioRepository repositorio;
     private int siguienteId;
-    private static final DateTimeFormatter FORMATO_FECHA =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-    public MovimientoInventarioController() {
-        movimientos = new ArrayList<>();
-        siguienteId = 1;
+    public MovimientoInventarioController(IMovimientoInventarioRepository repositorio) {
+        this.repositorio = repositorio;
+        this.siguienteId = 1;
     }
 
     public boolean registrarMovimiento(MovimientoInventario movimiento) {
@@ -25,75 +27,26 @@ public class MovimientoInventarioController {
         boolean resultado = movimiento.registrarMovimiento();
 
         if (resultado) {
-            movimientos.add(movimiento);
+            repositorio.guardar(movimiento);
             siguienteId++;
         }
 
         return resultado;
     }
 
-    public void mostrarMovimientos() {
-
-        if (movimientos.isEmpty()) {
-            System.out.println("No hay movimientos registrados.");
-            return;
-        }
-
-        for (MovimientoInventario movimiento : movimientos) {
-
-            System.out.println("ID Movimiento: " + movimiento.getIdMovimiento());
-            System.out.println("Tipo: " + movimiento.getTipo());
-            System.out.println("Producto: " + movimiento.getProducto().getNombre());
-            System.out.println("Cantidad: " + movimiento.getCantidad());
-            System.out.println("Fecha: " + movimiento.getFecha().format(FORMATO_FECHA));
-            System.out.println("Motivo: " + movimiento.getMotivo());
-
-            if (movimiento.getProveedor() != null) {
-                System.out.println("Proveedor: " + movimiento.getProveedor().getNombre());
-            }
-
-            System.out.println("-----------------------------------------");
-        }
+    public List<MovimientoInventario> listarMovimientos() {
+        return repositorio.listarTodos();
     }
 
     public MovimientoInventario buscarMovimiento(int idMovimiento) {
-
-        for (MovimientoInventario movimiento : movimientos) {
-            if (movimiento.getIdMovimiento() == idMovimiento) {
-                return movimiento;
-            }
-        }
-
-        return null;
+        return repositorio.buscarPorId(idMovimiento);
     }
 
-    public ArrayList<MovimientoInventario> listarMovimientosPorProducto(int idProducto) {
-
-        ArrayList<MovimientoInventario> resultado = new ArrayList<>();
-
-        for (MovimientoInventario movimiento : movimientos) {
-            if (movimiento.getProducto().getIdProducto() == idProducto) {
-                resultado.add(movimiento);
-            }
-        }
-
-        return resultado;
+    public List<MovimientoInventario> listarMovimientosPorProducto(int idProducto) {
+        return repositorio.listarPorProducto(idProducto);
     }
 
-    public ArrayList<MovimientoInventario> listarMovimientosPorTipo(TipoMovimiento tipo) {
-
-        ArrayList<MovimientoInventario> resultado = new ArrayList<>();
-
-        for (MovimientoInventario movimiento : movimientos) {
-            if (movimiento.getTipo() == tipo) {
-                resultado.add(movimiento);
-            }
-        }
-
-        return resultado;
-    }
-
-    public ArrayList<MovimientoInventario> getMovimientos() {
-        return movimientos;
+    public List<MovimientoInventario> listarMovimientosPorTipo(TipoMovimiento tipo) {
+        return repositorio.listarPorTipo(tipo);
     }
 }

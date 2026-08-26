@@ -4,7 +4,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Pedido
+/**
+ * PRINCIPIO ISP: Pedido implementa ActualizablePedido, que antes existía
+ * en el proyecto pero ninguna clase la usaba (interfaz "muerta").
+ * Ahora Pedido es responsable de saber actualizar sus propios datos editables,
+ * en vez de que PedidoController le "meta la mano" copiando campos uno por uno.
+ */
+public class Pedido implements ActualizablePedido
 {
 
     // ===== ATRIBUTOS =====
@@ -95,6 +101,11 @@ public class Pedido
         this.fechaEntrega = LocalDateTime.now();
     }
 
-
+    @Override
+    public void actualizarPedido(Pedido pedido) {
+        this.pago = pedido.isPago();
+        this.metodoPago = pedido.getMetodoPago();
+        this.direccionEntrega = pedido.getDireccionEntrega();
+    }
 
 }

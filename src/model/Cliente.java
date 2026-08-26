@@ -71,8 +71,7 @@ public class Cliente extends Usuario implements IActualizableUsuario {
     // ---- Metodos del diagrama ----
 
     public Pedido realizarPedido(int idPedido) {
-        Pedido nuevoPedido = new Pedido(idPedido, LocalDate.now().atStartOfDay(),
-                EstadoPedido.PENDIENTE, 0, 0);
+        Pedido nuevoPedido = new Pedido(idPedido, MetodoPago.EFECTIVO, this.direccion);
         pedidos.add(nuevoPedido);
         System.out.println("Pedido creado para el cliente: " + getNombre());
         return nuevoPedido;
