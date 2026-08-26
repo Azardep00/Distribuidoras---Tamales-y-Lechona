@@ -60,9 +60,7 @@ public class PedidoController {
         for (Pedido p : pedidos) {
             if (p.getIdPedido() == pedido.getIdPedido()) {
 
-                p.setPago(pedido.isPago());
-                p.setMetodoPago(pedido.getMetodoPago());
-                p.setDireccionEntrega(pedido.getDireccionEntrega());
+                p.actualizarPedido(pedido);
 
                 actualizo = true;
                 System.out.println("Pedido actualizado");
@@ -77,7 +75,7 @@ public class PedidoController {
 
     public static void eliminarPedido(int idPedido) {
         for (Pedido pedido : pedidos)
-    {
+        {
             if (pedido.getIdPedido() == idPedido)
             {
                 pedidos.remove(pedido);

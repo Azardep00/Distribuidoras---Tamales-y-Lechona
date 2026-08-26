@@ -2,6 +2,10 @@ import controller.ProveedorController;
 import controller.MovimientoInventarioController;
 import controller.ProductoController;
 import model.*;
+import repository.ProveedorRepositoryMemoria;
+import repository.MovimientoInventarioRepositoryMemoria;
+import view.ProveedorView;
+import view.MovimientoInventarioView;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,8 +16,14 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
 
-        ProveedorController proveedorController = new ProveedorController();
-        MovimientoInventarioController movimientoController = new MovimientoInventarioController();
+        // Singleton: una sola instancia de Distribuidora en todo el programa
+        Distribuidora distribuidora = Distribuidora.getInstancia();
+        System.out.println("Bienvenido a " + distribuidora.getNombre());
+
+        // DIP: los controllers reciben la implementación del repositorio por constructor
+        ProveedorController proveedorController = new ProveedorController(new ProveedorRepositoryMemoria());
+        MovimientoInventarioController movimientoController =
+                new MovimientoInventarioController(new MovimientoInventarioRepositoryMemoria());
 
         // ===== TAMALES =====
 
@@ -135,11 +145,11 @@ public class Main {
 
                 proveedorController.registrarProveedor(proveedor);
 
-                System.out.println("Proveedor registrado correctamente.");
+                ProveedorView.mostrarProveedorRegistrado();
             }
 
             if (opcion == 2) {
-                proveedorController.mostrarProveedores();
+                ProveedorView.mostrarProveedores(proveedorController.listarProveedores());
             }
 
             if (opcion == 3) {
@@ -160,7 +170,13 @@ public class Main {
                 System.out.print("Ingrese la nueva direccion: ");
                 String direccion = scanner.nextLine();
 
-                proveedorController.actualizarProveedor(id, nombre, telefono, correo, direccion);
+                boolean actualizado = proveedorController.actualizarProveedor(id, nombre, telefono, correo, direccion);
+
+                if (actualizado) {
+                    ProveedorView.mostrarProveedorActualizado();
+                } else {
+                    ProveedorView.mostrarProveedorNoEncontrado();
+                }
             }
 
             if (opcion == 4) {
@@ -169,7 +185,13 @@ public class Main {
                 int id = scanner.nextInt();
                 scanner.nextLine();
 
-                proveedorController.eliminarProveedor(id);
+                boolean eliminado = proveedorController.eliminarProveedor(id);
+
+                if (eliminado) {
+                    ProveedorView.mostrarProveedorEliminado();
+                } else {
+                    ProveedorView.mostrarProveedorNoEncontrado();
+                }
             }
         }
     }
@@ -225,7 +247,7 @@ public class Main {
 
                 if (tipo == TipoMovimiento.ENTRADA) {
 
-                    proveedorController.mostrarProveedores();
+                    ProveedorView.mostrarProveedores(proveedorController.listarProveedores());
 
                     System.out.print("Ingrese el ID del proveedor que trajo la mercancia: ");
                     int idProveedor = scanner.nextInt();
@@ -258,7 +280,7 @@ public class Main {
             }
 
             if (opcion == 4) {
-                movimientoController.mostrarMovimientos();
+                MovimientoInventarioView.mostrarMovimientos(movimientoController.listarMovimientos());
             }
         }
     }
