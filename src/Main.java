@@ -6,8 +6,11 @@ import repository.ProveedorRepositoryMemoria;
 import repository.MovimientoInventarioRepositoryMemoria;
 import view.ProveedorView;
 import view.MovimientoInventarioView;
+import pagos.ProcesadorPago;
+import pagos.AdaptadorPagoWompi;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
@@ -86,12 +89,13 @@ public class Main {
 
         int opcion = 0;
 
-        while (opcion != 3) {
+        while (opcion != 4) {
 
             System.out.println("\n===== DISTRIBUIDORA =====");
             System.out.println("1. PROVEEDOR");
             System.out.println("2. MOVIMIENTO INVENTARIO");
-            System.out.println("3. SALIR");
+            System.out.println("3. PROBAR PAGO (Adapter Wompi)");
+            System.out.println("4. SALIR");
 
             System.out.print("Seleccione una opcion: ");
             opcion = scanner.nextInt();
@@ -104,10 +108,47 @@ public class Main {
             if (opcion == 2) {
                 menuMovimientoInventario(scanner, movimientoController, proveedorController);
             }
+
+            if (opcion == 3) {
+                probarPagoWompi();
+            }
         }
 
         scanner.close();
         System.out.println("Programa finalizado.");
+    }
+
+    /**
+     * Prueba del patron Adapter: genera un link de pago real con Wompi (sandbox)
+     * a partir de un Cliente y un Pedido de ejemplo.
+     */
+    private static void probarPagoWompi() {
+
+        Cliente cliente = new Cliente(
+                1,                          // idUsuario
+                "Juan",                     // nombre
+                "Pérez",                    // apellido
+                "3001234567",               // telefono
+                "juan@correo.com",          // correo
+                "clave123",                 // contrasena
+                true,                       // estado
+                LocalDate.of(1995, 5, 20),  // fechaNacimiento
+                1,                          // idCliente
+                TipoCliente.FRECUENTE,      // tipoCliente
+                "Calle 10 # 20-30",         // direccion
+                LocalDate.now()             // fechaRegistro
+        );
+
+        Pedido pedido = cliente.realizarPedido(1, MetodoPago.EFECTIVO, "Calle 10 # 20-30");
+
+        ProcesadorPago procesador = new AdaptadorPagoWompi();
+        String linkDePago = procesador.procesarPago(50000, "PED-" + pedido.getIdPedido());
+
+        if (linkDePago != null) {
+            System.out.println("Envíale este link al cliente para pagar: " + linkDePago);
+        } else {
+            System.out.println("Hubo un error generando el pago.");
+        }
     }
 
     public static void menuProveedor(Scanner scanner, ProveedorController proveedorController) {
