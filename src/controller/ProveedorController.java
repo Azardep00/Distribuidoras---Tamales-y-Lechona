@@ -1,97 +1,62 @@
 package controller;
-import model.Proveedor;
-import java.util.ArrayList;
 
+import model.Proveedor;
+import repository.IProveedorRepository;
+
+import java.util.List;
+
+/**
+ * PRINCIPIO SRP: ya no imprime nada en consola, solo maneja la lógica de negocio
+ * de proveedores (registrar, buscar, actualizar, eliminar).
+ * PRINCIPIO DIP: depende de la abstracción IProveedorRepository, no de un
+ * ArrayList concreto. La implementación real se le "inyecta" por el constructor.
+ */
 public class ProveedorController {
 
-    private ArrayList<Proveedor> proveedores;
+    private final IProveedorRepository repositorio;
     private int siguienteId;
 
-    // CONSTRUCTOR
-
-    public ProveedorController(){
-
-        proveedores = new ArrayList<>();
-        siguienteId = 1;
-
+    public ProveedorController(IProveedorRepository repositorio) {
+        this.repositorio = repositorio;
+        this.siguienteId = 1;
     }
 
-    // METODO
-
-    public void registrarProveedor(Proveedor proveedor){
-
+    public void registrarProveedor(Proveedor proveedor) {
         proveedor.setIdProveedor(siguienteId);
-
-        proveedores.add(proveedor);
-
+        repositorio.guardar(proveedor);
         siguienteId++;
-
     }
 
-    public void mostrarProveedores(){
-
-        for (Proveedor proveedor : proveedores){
-
-            System.out.println("ID: " + proveedor.getIdProveedor());
-            System.out.println("Nombre: " + proveedor.getNombre());
-            System.out.println("Telefono: " + proveedor.getTelefono());
-            System.out.println("Correo: " + proveedor.getCorreo());
-            System.out.println("Direccion: " + proveedor.getDireccion());
-            System.out.println("Estado: " + proveedor.isEstado());
-
-            System.out.println("-----------------------------------------");
-
-        }
+    public List<Proveedor> listarProveedores() {
+        return repositorio.listarTodos();
     }
 
-    public Proveedor buscarProveedor(int id){
-
-        for(Proveedor proveedor : proveedores){
-
-            if(proveedor.getIdProveedor()==id){
-                return proveedor;
-            }
-        }
-
-        return null;
+    public Proveedor buscarProveedor(int id) {
+        return repositorio.buscarPorId(id);
     }
 
-    public void actualizarProveedor(int id, String nombre, String telefono, String correo, String direccion){
-
+    public boolean actualizarProveedor(int id, String nombre, String telefono, String correo, String direccion) {
         Proveedor proveedor = buscarProveedor(id);
 
-        if(proveedor != null){
-
-            proveedor.setNombre(nombre);
-            proveedor.setTelefono(telefono);
-            proveedor.setCorreo(correo);
-            proveedor.setDireccion(direccion);
-
-            System.out.println("Proveedor actualizado correctamente.");
+        if (proveedor == null) {
+            return false;
         }
-        else{
 
-            System.out.println("No se encontro un proveedor con ese ID.");
-
-        }
+        proveedor.setNombre(nombre);
+        proveedor.setTelefono(telefono);
+        proveedor.setCorreo(correo);
+        proveedor.setDireccion(direccion);
+        return true;
     }
 
-    public void eliminarProveedor(int id){
+    public boolean eliminarProveedor(int id) {
+        Proveedor proveedor = buscarProveedor(id);
 
-        Proveedor provedor = buscarProveedor(id);
-
-        if(provedor != null){
-
-            proveedores.remove(provedor);
-
-            System.out.println("Proveedor eliminado correctamente.");
+        if (proveedor == null) {
+            return false;
         }
-        else{
 
-            System.out.println("No se encontro un proveedor con ese ID");
-        }
+        repositorio.eliminar(proveedor);
+        return true;
     }
-
-
-
 }

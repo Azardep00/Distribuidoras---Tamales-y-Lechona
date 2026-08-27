@@ -70,8 +70,8 @@ public class Cliente extends Usuario implements IActualizableUsuario {
 
     // ---- Metodos del diagrama ----
 
-    public Pedido realizarPedido(int idPedido, MetodoPago metodoPago, String direccionEntrega) {
-        Pedido nuevoPedido = new Pedido(idPedido, metodoPago, direccionEntrega);
+    public Pedido realizarPedido(int idPedido) {
+        Pedido nuevoPedido = new Pedido(idPedido, MetodoPago.EFECTIVO, this.direccion);
         pedidos.add(nuevoPedido);
         System.out.println("Pedido creado para el cliente: " + getNombre());
         return nuevoPedido;
