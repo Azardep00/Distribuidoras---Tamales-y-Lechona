@@ -3,6 +3,7 @@ package model;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import observer.PedidoObserver;
 
 /**
  * PRINCIPIO ISP: Pedido implementa ActualizablePedido, que antes existía
@@ -106,6 +107,22 @@ public class Pedido implements ActualizablePedido
         this.pago = pedido.isPago();
         this.metodoPago = pedido.getMetodoPago();
         this.direccionEntrega = pedido.getDireccionEntrega();
+    }
+
+    private List<PedidoObserver> observadores = new ArrayList<>();
+
+    public void agregarObserver(PedidoObserver observer) {
+        observadores.add(observer);
+    }
+
+    public void removerObserver(PedidoObserver observer) {
+        observadores.remove(observer);
+    }
+
+    private void notificarObservadores() {
+        for (PedidoObserver observer : observadores) {
+            observer.actualizar(this);
+        }
     }
 
 }
