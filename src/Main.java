@@ -6,8 +6,6 @@ import controller.PedidoController;
 import model.*;
 import repository.ProveedorRepositoryMemoria;
 import repository.MovimientoInventarioRepositoryMemoria;
-import view.ProveedorView;
-import view.MovimientoInventarioView;
 import pagos.ProcesadorPago;
 import pagos.AdaptadorPagoWompi;
 
@@ -229,11 +227,11 @@ public class Main {
 
                 proveedorController.registrarProveedor(proveedor);
 
-                ProveedorView.mostrarProveedorRegistrado();
+                System.out.println("Proveedor registrado correctamente.");
             }
 
             if (opcion == 2) {
-                ProveedorView.mostrarProveedores(proveedorController.listarProveedores());
+                mostrarProveedores(proveedorController.listarProveedores());
             }
 
             if (opcion == 3) {
@@ -255,9 +253,9 @@ public class Main {
                 boolean actualizado = proveedorController.actualizarProveedor(id, nombre, telefono, correo, direccion);
 
                 if (actualizado) {
-                    ProveedorView.mostrarProveedorActualizado();
+                    System.out.println("Proveedor actualizado correctamente.");
                 } else {
-                    ProveedorView.mostrarProveedorNoEncontrado();
+                    System.out.println("No se encontró un proveedor con ese ID.");
                 }
             }
 
@@ -268,9 +266,9 @@ public class Main {
                 boolean eliminado = proveedorController.eliminarProveedor(id);
 
                 if (eliminado) {
-                    ProveedorView.mostrarProveedorEliminado();
+                    System.out.println("Proveedor eliminado correctamente.");
                 } else {
-                    ProveedorView.mostrarProveedorNoEncontrado();
+                    System.out.println("No se encontró un proveedor con ese ID.");
                 }
             }
         }
@@ -321,7 +319,7 @@ public class Main {
 
                 if (tipo == TipoMovimiento.ENTRADA) {
 
-                    ProveedorView.mostrarProveedores(proveedorController.listarProveedores());
+                    mostrarProveedores(proveedorController.listarProveedores());
 
                     int idProveedor = leerEntero(scanner, "Ingrese el ID del proveedor que trajo la mercancia: ");
 
@@ -352,7 +350,7 @@ public class Main {
             }
 
             if (opcion == 4) {
-                MovimientoInventarioView.mostrarMovimientos(movimientoController.listarMovimientos());
+                mostrarMovimientos(movimientoController.listarMovimientos());
             }
         }
     }
@@ -711,6 +709,37 @@ public class Main {
                 int id = leerEntero(scanner, "Ingrese el ID del pedido a eliminar: ");
                 PedidoController.eliminarPedido(id);
             }
+        }
+    }
+
+    private static void mostrarProveedores(List<Proveedor> proveedores) {
+        if (proveedores == null || proveedores.isEmpty()) {
+            System.out.println("No hay proveedores registrados.");
+            return;
+        }
+        System.out.println("\n--- Proveedores registrados ---");
+        for (Proveedor p : proveedores) {
+            System.out.println("ID: " + p.getIdProveedor() +
+                    " | Nombre: " + p.getNombre() +
+                    " | Teléfono: " + p.getTelefono() +
+                    " | Correo: " + p.getCorreo() +
+                    " | Dirección: " + p.getDireccion());
+        }
+    }
+
+    private static void mostrarMovimientos(List<MovimientoInventario> movimientos) {
+        if (movimientos == null || movimientos.isEmpty()) {
+            System.out.println("No hay movimientos registrados.");
+            return;
+        }
+        System.out.println("\n--- Movimientos de inventario ---");
+        for (MovimientoInventario m : movimientos) {
+            System.out.println("ID: " + m.getIdMovimiento() +
+                    " | Tipo: " + m.getTipo() +
+                    " | Cantidad: " + m.getCantidad() +
+                    " | Motivo: " + m.getMotivo() +
+                    " | Producto: " + (m.getProducto() != null ? m.getProducto().getNombre() : "N/A") +
+                    " | Proveedor: " + (m.getProveedor() != null ? m.getProveedor().getNombre() : "N/A"));
         }
     }
 
