@@ -36,7 +36,7 @@ public class MovimientoInventarioPanel extends JPanel {
     private final JTextField txtMotivo = new JTextField(15);
 
     public MovimientoInventarioPanel(MovimientoInventarioController movimientoController,
-                                      ProveedorController proveedorController) {
+                                     ProveedorController proveedorController) {
         this.movimientoController = movimientoController;
         this.proveedorController = proveedorController;
 
