@@ -80,11 +80,18 @@ public class Pedido implements ActualizablePedido
     }
 
     public void cambiarEstado(EstadoPedido nuevoEstado) {
-        if (this.estado == EstadoPedido.CANCELADO || this.estado == EstadoPedido.ENTREGADO)
-        {
-            throw new IllegalStateException("No se puede cambiar el estado de un pedido " + this.estado);
+
+        if (this.estado == EstadoPedido.CANCELADO ||
+                this.estado == EstadoPedido.ENTREGADO) {
+            return;
         }
+
+        if (nuevoEstado == null) {
+            return;
+        }
+
         this.estado = nuevoEstado;
+        notificarObservadores();
     }
 
     public void cancelar() {
@@ -92,14 +99,20 @@ public class Pedido implements ActualizablePedido
             throw new IllegalStateException("No se puede cancelar un pedido ya entregado");
         }
         this.estado = EstadoPedido.CANCELADO;
+
+        notificarObservadores();
     }
 
     public void confirmarEntrega() {
+
         if (this.estado == EstadoPedido.CANCELADO) {
-            throw new IllegalStateException("No se puede confirmar la entrega de un pedido cancelado");
+            return;
         }
+
         this.estado = EstadoPedido.ENTREGADO;
         this.fechaEntrega = LocalDateTime.now();
+
+        notificarObservadores();
     }
 
     @Override
@@ -123,6 +136,24 @@ public class Pedido implements ActualizablePedido
         for (PedidoObserver observer : observadores) {
             observer.actualizar(this);
         }
+    }
+
+    public void agregarDetalle(DetallePedido detalle) {
+        if (detalle == null) {
+            return;
+        }
+
+        detalles.add(detalle);
+        calcularTotal();
+    }
+
+    public void eliminarDetalle(DetallePedido detalle) {
+        if (detalle == null) {
+            return;
+        }
+
+        detalles.remove(detalle);
+        calcularTotal();
     }
 
 }

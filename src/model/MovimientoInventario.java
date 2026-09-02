@@ -30,24 +30,6 @@ public class MovimientoInventario {
         this.proveedor = proveedor;
     }
 
-    public boolean registrarMovimiento() {
-
-        if (tipo == TipoMovimiento.ENTRADA) {
-            producto.setStock(producto.getStock() + cantidad);
-            return true;
-        }
-
-        if (tipo == TipoMovimiento.SALIDA) {
-            if (producto.consultarDisponibilidad(cantidad)) {
-                producto.setStock(producto.getStock() - cantidad);
-                return true;
-            }
-            return false;
-        }
-
-        return false;
-    }
-
     public int getIdMovimiento() {
         return idMovimiento;
     }
