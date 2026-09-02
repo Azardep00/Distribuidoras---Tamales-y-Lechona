@@ -4,6 +4,9 @@ import model.Pedido;
 
 import java.util.ArrayList;
 import java.util.List;
+import model.MetodoPago;
+import observer.AuditoriaPedido;
+import observer.NotificacionPedido;
 
 public class PedidoController {
 
@@ -75,5 +78,20 @@ public class PedidoController {
 
     public static void eliminarPedido(int idPedido) {
         pedidos.removeIf(pedido -> pedido.getIdPedido() == idPedido);
+    }
+
+    public static Pedido crearPedido(int idPedido, MetodoPago metodoPago, String direccionEntrega) {
+        if (existeId(idPedido)) {
+            throw new RuntimeException("Error: Ya existe un pedido con ese ID");
+        }
+
+        Pedido pedido = new Pedido(idPedido, metodoPago, direccionEntrega);
+
+        pedido.agregarObserver(new AuditoriaPedido());
+        pedido.agregarObserver(new NotificacionPedido());
+
+        pedidos.add(pedido);
+
+        return pedido;
     }
 }
