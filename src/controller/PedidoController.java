@@ -74,16 +74,6 @@ public class PedidoController {
     }
 
     public static void eliminarPedido(int idPedido) {
-        for (Pedido pedido : pedidos)
-        {
-            if (pedido.getIdPedido() == idPedido)
-            {
-                pedidos.remove(pedido);
-                System.out.println("Pedido eliminado correctamente");
-                return;
-            }
-        }
-
-        System.out.println("No se encontro ningun pedido con ese ID");
+        pedidos.removeIf(pedido -> pedido.getIdPedido() == idPedido);
     }
 }

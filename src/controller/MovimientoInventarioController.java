@@ -3,6 +3,7 @@ package controller;
 import model.MovimientoInventario;
 import model.TipoMovimiento;
 import repository.IMovimientoInventarioRepository;
+import model.Producto;
 
 import java.util.List;
 
@@ -22,16 +23,38 @@ public class MovimientoInventarioController {
 
     public boolean registrarMovimiento(MovimientoInventario movimiento) {
 
-        movimiento.setIdMovimiento(siguienteId);
-
-        boolean resultado = movimiento.registrarMovimiento();
-
-        if (resultado) {
-            repositorio.guardar(movimiento);
-            siguienteId++;
+        if (movimiento == null || movimiento.getProducto() == null) {
+            return false;
         }
 
-        return resultado;
+        Producto producto = movimiento.getProducto();
+        int cantidad = movimiento.getCantidad();
+
+        if (cantidad <= 0) {
+            return false;
+        }
+
+        if (movimiento.getTipo() == TipoMovimiento.ENTRADA) {
+
+            producto.setStock(producto.getStock() + cantidad);
+
+        } else if (movimiento.getTipo() == TipoMovimiento.SALIDA) {
+
+            if (!producto.consultarDisponibilidad(cantidad)) {
+                return false;
+            }
+
+            producto.setStock(producto.getStock() - cantidad);
+
+        } else {
+            return false;
+        }
+
+        movimiento.setIdMovimiento(siguienteId);
+        repositorio.guardar(movimiento);
+        siguienteId++;
+
+        return true;
     }
 
     public List<MovimientoInventario> listarMovimientos() {
