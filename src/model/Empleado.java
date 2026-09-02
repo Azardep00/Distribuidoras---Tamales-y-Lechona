@@ -15,14 +15,6 @@ public class Empleado extends Usuario implements IActualizableUsuario {
         this.fechaContratacion = fechaContratacion;
     }
 
-    public void gestionarPedido() {
-        // lógica para gestionar pedidos
-    }
-
-    public void gestionarInventario() {
-        // lógica para gestionar inventario
-    }
-
     public String getCargo() { return cargo; }
     public void setCargo(String cargo) { this.cargo = cargo; }
 
