@@ -95,17 +95,19 @@ public class Pedido implements ActualizablePedido
     }
 
     public void cancelar() {
-        if (this.estado == EstadoPedido.ENTREGADO) {
-            throw new IllegalStateException("No se puede cancelar un pedido ya entregado");
+        if (this.estado == EstadoPedido.ENTREGADO ||
+                this.estado == EstadoPedido.CANCELADO) {
+            return;
         }
-        this.estado = EstadoPedido.CANCELADO;
 
+        this.estado = EstadoPedido.CANCELADO;
         notificarObservadores();
     }
 
     public void confirmarEntrega() {
 
-        if (this.estado == EstadoPedido.CANCELADO) {
+        if (this.estado == EstadoPedido.CANCELADO ||
+                this.estado == EstadoPedido.ENTREGADO) {
             return;
         }
 
@@ -117,6 +119,10 @@ public class Pedido implements ActualizablePedido
 
     @Override
     public void actualizarPedido(Pedido pedido) {
+        if (pedido == null) {
+            return;
+        }
+
         this.pago = pedido.isPago();
         this.metodoPago = pedido.getMetodoPago();
         this.direccionEntrega = pedido.getDireccionEntrega();

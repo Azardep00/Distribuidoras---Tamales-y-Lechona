@@ -64,21 +64,13 @@ public class Cliente extends Usuario implements IActualizableUsuario {
         return pedidos;
     }
 
-    public void setPedidos(List<Pedido> pedidos) {
-        this.pedidos = pedidos;
-    }
 
-    // ---- Metodos del diagrama ----
+    // Metodos
 
-    public Pedido realizarPedido(int idPedido) {
-        return realizarPedido(idPedido, MetodoPago.EFECTIVO, this.direccion);
-    }
-
-    public Pedido realizarPedido(int idPedido, MetodoPago metodoPago, String direccionEntrega) {
-        Pedido nuevoPedido = new Pedido(idPedido, metodoPago, direccionEntrega);
-        pedidos.add(nuevoPedido);
-        System.out.println("Pedido creado para el cliente: " + getNombre());
-        return nuevoPedido;
+    public void agregarPedido(Pedido pedido) {
+        if (pedido != null) {
+            pedidos.add(pedido);
+        }
     }
 
     /**
