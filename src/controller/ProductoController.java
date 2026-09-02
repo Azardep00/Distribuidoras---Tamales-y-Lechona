@@ -74,8 +74,8 @@ public class ProductoController {
             if (p.getIdProducto() == producto.getIdProducto()) {
                 p.setNombre(producto.getNombre());
                 p.setDescripcion(producto.getDescripcion());
-                p.actualizarPrecio(producto.getPrecio());
-                p.cambiarEstado(producto.isEstado());
+                p.setPrecio(producto.getPrecio());
+                p.setEstado(producto.isEstado());
 
                 // Datos específicos del subtipo
                 if (p instanceof IActualizableProducto) {

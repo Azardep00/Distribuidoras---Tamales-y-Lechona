@@ -76,14 +76,6 @@ public abstract class Producto {
         return estado && stock >= cantidadRequerida;
     }
 
-    public void actualizarPrecio(BigDecimal nuevoPrecio) {
-        this.precio = nuevoPrecio;
-    }
-
-    public void cambiarEstado(boolean nuevoEstado) {
-        this.estado = nuevoEstado;
-    }
-
     /**
      * Cada subtipo de Producto (Tamal, Lechona) define su propia forma
      * de calcular el precio (por peso, por porciones, etc). Principio OCP:

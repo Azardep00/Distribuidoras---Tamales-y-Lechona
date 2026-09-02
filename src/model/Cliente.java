@@ -81,10 +81,6 @@ public class Cliente extends Usuario implements IActualizableUsuario {
         return nuevoPedido;
     }
 
-    public List<Pedido> consultarPedidos() {
-        return pedidos;
-    }
-
     /**
      * Implementacion de IActualizableUsuario: actualiza los datos propios de Cliente
      * (los datos comunes de Usuario ya los actualiza Usuario.actualizarDatos()).
