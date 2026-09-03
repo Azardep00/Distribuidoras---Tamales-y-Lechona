@@ -131,7 +131,9 @@ public class Pedido implements ActualizablePedido
     private List<PedidoObserver> observadores = new ArrayList<>();
 
     public void agregarObserver(PedidoObserver observer) {
-        observadores.add(observer);
+        if (observer != null && !observadores.contains(observer)) {
+            observadores.add(observer);
+        }
     }
 
     public void removerObserver(PedidoObserver observer) {
