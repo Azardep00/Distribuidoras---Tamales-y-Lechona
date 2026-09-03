@@ -8,7 +8,7 @@ import model.*;
 import repository.*;
 import view.*;
 
-public class Main extends JFrame {
+public class    Main extends JFrame {
     public Main() {
         super("El Lechon · Tamales y Lechona | Centro de operaciones");
         UI.init();
