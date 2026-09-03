@@ -60,6 +60,8 @@ public class MovimientoInventarioPanel extends JPanel {
     add(form, BorderLayout.NORTH);
     JTabbedPane tabs = new JTabbedPane();
     JTable ts = new JTable(stock), tm = new JTable(mov);
+    UI.styleTable(ts);
+    UI.styleTable(tm);
     ts.setAutoCreateRowSorter(true);
     tm.setAutoCreateRowSorter(true);
     tabs.addTab("Stock actual", new JScrollPane(ts));
@@ -69,6 +71,10 @@ public class MovimientoInventarioPanel extends JPanel {
     sa.addActionListener(e -> salida());
     producto.addActionListener(
         e -> modo.setText("Entrada seleccionada: el proveedor es obligatorio."));
+        UI.styleField(producto);
+        UI.styleField(proveedor);
+        UI.styleField(cantidad);
+        UI.styleField(motivo);
     refrescarCombos();
     refrescarTablas();
   }

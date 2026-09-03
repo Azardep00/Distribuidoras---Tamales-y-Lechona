@@ -84,6 +84,7 @@ public class ProductoPanel extends JPanel {
         search.add(all);
         center.add(search, BorderLayout.NORTH);
         table.setAutoCreateRowSorter(true);
+        UI.styleTable(table);
         center.add(new JScrollPane(table), BorderLayout.CENTER);
         add(center, BorderLayout.CENTER);
         tipo.addActionListener(e -> cards.show(specific, (String) tipo.getSelectedItem()));
@@ -98,6 +99,15 @@ public class ProductoPanel extends JPanel {
                     refrescarTabla("");
                 });
         table.getSelectionModel().addListSelectionListener(e -> cargar());
+        UI.styleField(tipo);
+        UI.styleField(nombre);
+        UI.styleField(descripcion);
+        UI.styleField(precio);
+        UI.styleField(tipoTamal);
+        UI.styleField(tamTamal);
+        UI.styleField(tamLechona);
+        UI.styleField(porciones);
+        UI.styleField(buscar);
         refrescarTabla("");
     }
 

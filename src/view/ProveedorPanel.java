@@ -62,6 +62,7 @@ public class ProveedorPanel extends JPanel {
         search.add(b);
         cat.add(search, BorderLayout.NORTH);
         table.setAutoCreateRowSorter(true);
+        UI.styleTable(table);
         cat.add(new JScrollPane(table), BorderLayout.CENTER);
         add(cat, BorderLayout.CENTER);
         save.addActionListener(e -> registrar());
@@ -71,6 +72,11 @@ public class ProveedorPanel extends JPanel {
         b.addActionListener(e -> refrescar(buscar.getText()));
         consult.addActionListener(e -> mostrarConsulta());
         table.getSelectionModel().addListSelectionListener(e -> cargar());
+        UI.styleField(nombre);
+        UI.styleField(telefono);
+        UI.styleField(correo);
+        UI.styleField(direccion);
+        UI.styleField(buscar);
         refrescar("");
     }
 
