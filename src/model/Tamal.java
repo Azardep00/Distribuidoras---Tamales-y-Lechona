@@ -7,12 +7,12 @@ public class Tamal extends Producto implements IActualizableProducto {
     // Atributos
 
     private TipoTamal tipo;
-    private TamañoTamal tamaño;
+    private TamanoTamal tamaño;
 
     // Constructor
 
     public Tamal(int idProducto, String nombre, String descripcion, BigDecimal precio,
-                 int stock, boolean estado, TipoTamal tipo, TamañoTamal tamaño)
+                 int stock, boolean estado, TipoTamal tipo, TamanoTamal tamaño)
     {
         super(idProducto, nombre, descripcion, precio, stock, estado);
         this.tipo = tipo;
@@ -25,7 +25,7 @@ public class Tamal extends Producto implements IActualizableProducto {
         return tipo;
     }
 
-    public TamañoTamal getTamaño() {
+    public TamanoTamal getTamaño() {
         return tamaño;
     }
 
@@ -35,7 +35,7 @@ public class Tamal extends Producto implements IActualizableProducto {
         this.tipo = tipo;
     }
 
-    public void setTamaño(TamañoTamal tamaño) {
+    public void setTamaño(TamanoTamal tamaño) {
         this.tamaño = tamaño;
     }
 

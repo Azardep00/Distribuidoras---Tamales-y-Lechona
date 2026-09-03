@@ -1,135 +1,88 @@
-import controller.MovimientoInventarioController;
-import controller.ProductoController;
-import controller.ProveedorController;
-import controller.UsuarioController;
+import controller.*;
 import model.*;
-import repository.MovimientoInventarioRepositoryMemoria;
-import repository.ProveedorRepositoryMemoria;
+import repository.*;
 import view.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.math.BigDecimal;
 
-/**
- * Ventana principal de la interfaz gráfica.
- * Es el equivalente visual de Main.java: crea exactamente los mismos
- * controllers, siembra los mismos productos de ejemplo (tamales y lechonas)
- * y organiza cada "menú" de la consola (PROVEEDOR, MOVIMIENTO INVENTARIO,
- * PRODUCTO, USUARIO, PEDIDO) como una pestaña con su propio CRUD visual.
- * No se reescribe ninguna regla de negocio: todas las pestañas llaman a los
- * mismos controllers/modelos que ya existían en el proyecto de consola.
- */
 public class Main extends JFrame {
 
     public Main() {
         super("Distribuidora de Tamales y Lechona");
+        Distribuidora d = Distribuidora.getInstancia();
 
-        Distribuidora distribuidora = Distribuidora.getInstancia();
-        setTitle(distribuidora.getNombre());
-
-        // Mismos controllers, con las mismas implementaciones de repositorio (DIP)
-        ProveedorController proveedorController = new ProveedorController(new ProveedorRepositoryMemoria());
-        MovimientoInventarioController movimientoController =
-                new MovimientoInventarioController(new MovimientoInventarioRepositoryMemoria());
-        UsuarioController usuarioController = new UsuarioController();
-
+        ProveedorController pc = new ProveedorController(new ProveedorRepositoryMemoria());
+        MovimientoInventarioController mc = new MovimientoInventarioController(new MovimientoInventarioRepositoryMemoria());
+        UsuarioController uc = new UsuarioController();
         sembrarProductos();
 
-        // ----- Pestañas: una por cada módulo -----
-        ProveedorPanel proveedorPanel = new ProveedorPanel(proveedorController);
-        MovimientoInventarioPanel movimientoPanel =
-                new MovimientoInventarioPanel(movimientoController, proveedorController);
-        ProductoPanel productoPanel = new ProductoPanel();
-        UsuarioPanel usuarioPanel = new UsuarioPanel(usuarioController);
-        PedidoPanel pedidoPanel = new PedidoPanel(usuarioController);
+        ProveedorPanel pp = new ProveedorPanel(pc);
+        MovimientoInventarioPanel mp = new MovimientoInventarioPanel(mc, pc);
+        ProductoPanel prod = new ProductoPanel();
+        UsuarioPanel up = new UsuarioPanel(uc);
+        PedidoPanel ped = new PedidoPanel(uc);
 
-        JTabbedPane pestañas = new JTabbedPane();
-        pestañas.addTab("1. Proveedor", proveedorPanel);
-        pestañas.addTab("2. Movimiento Inventario", movimientoPanel);
-        pestañas.addTab("3. Producto", productoPanel);
-        pestañas.addTab("4. Usuario", usuarioPanel);
-        pestañas.addTab("5. Pedido", pedidoPanel);
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.addTab("Proveedores", pp);
+        tabs.addTab("Inventario", mp);
+        tabs.addTab("Productos", prod);
+        tabs.addTab("Usuarios", up);
+        tabs.addTab("Pedidos", ped);
 
-        // Al cambiar de pestaña se refresca la vista con los datos más recientes,
-        // igual que cuando en consola se volvía a mostrar un menú.
-        pestañas.addChangeListener(e -> {
-            Component seleccionado = pestañas.getSelectedComponent();
-            if (seleccionado == proveedorPanel) {
-                proveedorPanel.refrescarTabla();
-            } else if (seleccionado == movimientoPanel) {
-                movimientoPanel.refrescarStock();
-                movimientoPanel.refrescarMovimientos();
-            } else if (seleccionado == productoPanel) {
-                productoPanel.refrescarTabla();
-            } else if (seleccionado == usuarioPanel) {
-                usuarioPanel.refrescarTabla();
-            } else if (seleccionado == pedidoPanel) {
-                pedidoPanel.refrescarClientes();
-                pedidoPanel.refrescarTabla();
+        tabs.addChangeListener(e -> {
+            Component c = tabs.getSelectedComponent();
+            if (c == pp) {
+                pp.refrescarTabla();
+            } else if (c == mp) {
+                mp.refrescarCombos();
+                mp.refrescarStock();
+                mp.refrescarMovimientos();
+            } else if (c == prod) {
+                prod.refrescarTabla();
+            } else if (c == up) {
+                up.refrescarTabla();
+            } else if (c == ped) {
+                ped.refrescarClientes();
+                ped.refrescarProductos();
+                ped.refrescarTabla();
             }
         });
 
-        JLabel encabezado = new JLabel(
-                "  Bienvenido a " + distribuidora.getNombre() + " — " + distribuidora.getDireccion(), SwingConstants.LEFT);
-        encabezado.setFont(encabezado.getFont().deriveFont(Font.BOLD, 14f));
-        encabezado.setBorder(BorderFactory.createEmptyBorder(8, 4, 8, 4));
+        JLabel head = new JLabel("  " + d.getNombre() + "  ·  " + d.getDireccion());
+        head.setFont(head.getFont().deriveFont(Font.BOLD, 15f));
+        head.setBorder(BorderFactory.createEmptyBorder(10, 6, 10, 6));
 
         setLayout(new BorderLayout());
-        add(encabezado, BorderLayout.NORTH);
-        add(pestañas, BorderLayout.CENTER);
+        add(head, BorderLayout.NORTH);
+        add(tabs, BorderLayout.CENTER);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(950, 650);
+        setSize(1100, 720);
+        setMinimumSize(new Dimension(980, 650));
         setLocationRelativeTo(null);
     }
 
     private void sembrarProductos() {
-        ProductoController.agregarProducto(new Tamal(
-                1, "Tamal Normal Grande", "Tamal tradicional tamaño grande",
-                new BigDecimal("8000"), 20, true,
-                TipoTamal.NORMAL, TamañoTamal.GRANDE
-        ));
-        ProductoController.agregarProducto(new Tamal(
-                2, "Tamal Normal Mediano", "Tamal tradicional tamaño mediano",
-                new BigDecimal("6500"), 25, true,
-                TipoTamal.NORMAL, TamañoTamal.MEDIANO
-        ));
-        ProductoController.agregarProducto(new Tamal(
-                3, "Tamal Normal Pequeño", "Tamal tradicional tamaño pequeño",
-                new BigDecimal("5000"), 30, true,
-                TipoTamal.NORMAL, TamañoTamal.PEQUEÑO
-        ));
-        ProductoController.agregarProducto(new Tamal(
-                4, "Tamal Picante Grande", "Tamal picante tamaño grande",
-                new BigDecimal("9000"), 15, true,
-                TipoTamal.PICANTE, TamañoTamal.GRANDE
-        ));
-        ProductoController.agregarProducto(new Tamal(
-                5, "Tamal Picante Mediano", "Tamal picante tamaño mediano",
-                new BigDecimal("7500"), 15, true,
-                TipoTamal.PICANTE, TamañoTamal.MEDIANO
-        ));
-        ProductoController.agregarProducto(new Tamal(
-                6, "Tamal Picante Pequeño", "Tamal picante tamaño pequeño",
-                new BigDecimal("6000"), 20, true,
-                TipoTamal.PICANTE, TamañoTamal.PEQUEÑO
-        ));
-        ProductoController.agregarProducto(new Lechona(
-                7, "Lechona Grande", "Lechona tradicional tolimense",
-                new BigDecimal("150000"), 5, true,
-                TamañoLechona.GRANDE, 20
-        ));
-        ProductoController.agregarProducto(new Lechona(
-                8, "Lechona Mediana", "Lechona tradicional tamaño mediano",
-                new BigDecimal("100000"), 8, true,
-                TamañoLechona.MEDIANA, 12
-        ));
-        ProductoController.agregarProducto(new Lechona(
-                9, "Lechona Pequeña", "Lechona ideal para reuniones pequeñas",
-                new BigDecimal("60000"), 8, true,
-                TamañoLechona.PEQUEÑA, 8
-        ));
+        ProductoController.agregarProducto(new Tamal(1, "Tamal normal grande", "Tamal tradicional tamaño grande",
+                new BigDecimal("8000"), 20, true, TipoTamal.NORMAL, TamanoTamal.GRANDE));
+        ProductoController.agregarProducto(new Tamal(2, "Tamal normal mediano", "Tamal tradicional tamaño mediano",
+                new BigDecimal("6500"), 25, true, TipoTamal.NORMAL, TamanoTamal.MEDIANO));
+        ProductoController.agregarProducto(new Tamal(3, "Tamal normal pequeño", "Tamal tradicional tamaño pequeño",
+                new BigDecimal("5000"), 30, true, TipoTamal.NORMAL, TamanoTamal.PEQUEÑO));
+        ProductoController.agregarProducto(new Tamal(4, "Tamal picante grande", "Tamal picante tamaño grande",
+                new BigDecimal("9000"), 15, true, TipoTamal.PICANTE, TamanoTamal.GRANDE));
+        ProductoController.agregarProducto(new Tamal(5, "Tamal picante mediano", "Tamal picante tamaño mediano",
+                new BigDecimal("7500"), 15, true, TipoTamal.PICANTE, TamanoTamal.MEDIANO));
+        ProductoController.agregarProducto(new Tamal(6, "Tamal picante pequeño", "Tamal picante tamaño pequeño",
+                new BigDecimal("6000"), 20, true, TipoTamal.PICANTE, TamanoTamal.PEQUEÑO));
+        ProductoController.agregarProducto(new Lechona(7, "Lechona grande", "Lechona tradicional tolimense",
+                new BigDecimal("150000"), 5, true, TamanoLechona.GRANDE, 20));
+        ProductoController.agregarProducto(new Lechona(8, "Lechona mediana", "Lechona tradicional tamaño mediano",
+                new BigDecimal("100000"), 8, true, TamanoLechona.MEDIANA, 12));
+        ProductoController.agregarProducto(new Lechona(9, "Lechona pequeña", "Lechona ideal para reuniones pequeñas",
+                new BigDecimal("60000"), 8, true, TamanoLechona.PEQUEÑA, 8));
     }
 
     public static void main(String[] args) {
@@ -137,7 +90,6 @@ public class Main extends JFrame {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception ignored) {
-                // Si el look and feel del sistema falla, se usa el por defecto de Swing.
             }
             new Main().setVisible(true);
         });

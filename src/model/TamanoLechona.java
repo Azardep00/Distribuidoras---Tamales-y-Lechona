@@ -1,6 +1,6 @@
 package model;
 
-public enum TamañoLechona {
+public enum TamanoLechona {
     GRANDE,
     MEDIANA,
     PEQUEÑA

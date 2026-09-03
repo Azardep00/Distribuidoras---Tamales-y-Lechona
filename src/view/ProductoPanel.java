@@ -3,286 +3,34 @@ package view;
 import controller.ProductoController;
 import model.*;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.math.BigDecimal;
-import java.util.List;
+import javax.swing.*; import javax.swing.table.DefaultTableModel; import java.awt.*; import java.math.BigDecimal;
 
-/**
- * Vista gráfica del CRUD de Producto (Tamal y Lechona).
- * Replica el menú 3 (PRODUCTO) de Main.java: capturarProducto(...) pedía
- * por consola tipo, nombre, descripción, precio, stock, estado y los
- * campos propios de Tamal (tipo/tamaño) o Lechona (tamaño/porciones).
- * Aquí se pide lo mismo pero con combos y campos de texto.
- */
+/** Alta de producto sin ID manual. El ID se genera internamente y sirve para identificar el registro. */
 public class ProductoPanel extends JPanel {
-
-    private final DefaultTableModel modeloTabla;
-    private final JTable tabla;
-
-    private final JTextField txtId = new JTextField(5);
-    private final JTextField txtNombre = new JTextField(15);
-    private final JTextField txtDescripcion = new JTextField(15);
-    private final JTextField txtPrecio = new JTextField(8);
-    private final JTextField txtStock = new JTextField(5);
-    private final JCheckBox chkActivo = new JCheckBox("Activo", true);
-
-    private final JComboBox<String> comboTipoProducto = new JComboBox<>(new String[]{"Tamal", "Lechona"});
-
-    // Campos específicos de Tamal
-    private final JComboBox<TipoTamal> comboTipoTamal = new JComboBox<>(TipoTamal.values());
-    private final JComboBox<TamañoTamal> comboTamañoTamal = new JComboBox<>(TamañoTamal.values());
-
-    // Campos específicos de Lechona
-    private final JComboBox<TamañoLechona> comboTamañoLechona = new JComboBox<>(TamañoLechona.values());
-    private final JTextField txtPorciones = new JTextField(5);
-
-    private final JPanel panelTamal = new JPanel();
-    private final JPanel panelLechona = new JPanel();
-    private final CardLayout cardLayout = new CardLayout();
-    private final JPanel panelEspecifico = new JPanel();
-
-    public ProductoPanel() {
-        setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JPanel formulario = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(4, 4, 4, 4);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        int fila = 0;
-        agregarCampo(formulario, gbc, fila++, "ID (actualizar/eliminar):", txtId);
-        agregarCampo(formulario, gbc, fila++, "Tipo de producto:", comboTipoProducto);
-        agregarCampo(formulario, gbc, fila++, "Nombre:", txtNombre);
-        agregarCampo(formulario, gbc, fila++, "Descripción:", txtDescripcion);
-        agregarCampo(formulario, gbc, fila++, "Precio:", txtPrecio);
-        agregarCampo(formulario, gbc, fila++, "Stock:", txtStock);
-        agregarCampo(formulario, gbc, fila++, "Estado:", chkActivo);
-
-        panelTamal.setLayout(new GridLayout(2, 2, 4, 4));
-        panelTamal.add(new JLabel("Tipo de tamal:"));
-        panelTamal.add(comboTipoTamal);
-        panelTamal.add(new JLabel("Tamaño:"));
-        panelTamal.add(comboTamañoTamal);
-
-        panelLechona.setLayout(new GridLayout(2, 2, 4, 4));
-        panelLechona.add(new JLabel("Tamaño:"));
-        panelLechona.add(comboTamañoLechona);
-        panelLechona.add(new JLabel("Número de porciones:"));
-        panelLechona.add(txtPorciones);
-
-        panelEspecifico.setLayout(cardLayout);
-        panelEspecifico.add(panelTamal, "Tamal");
-        panelEspecifico.add(panelLechona, "Lechona");
-
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.gridwidth = 2;
-        formulario.add(panelEspecifico, gbc);
-
-        comboTipoProducto.addActionListener(e ->
-                cardLayout.show(panelEspecifico, (String) comboTipoProducto.getSelectedItem()));
-
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnRegistrar = new JButton("1. Registrar producto");
-        JButton btnListar = new JButton("2. Listar productos");
-        JButton btnActualizar = new JButton("3. Actualizar producto");
-        JButton btnEliminar = new JButton("4. Eliminar producto");
-        botones.add(btnRegistrar);
-        botones.add(btnListar);
-        botones.add(btnActualizar);
-        botones.add(btnEliminar);
-
-        JPanel norte = new JPanel(new BorderLayout());
-        norte.add(formulario, BorderLayout.NORTH);
-        norte.add(botones, BorderLayout.SOUTH);
-        add(norte, BorderLayout.NORTH);
-
-        modeloTabla = new DefaultTableModel(
-                new Object[]{"ID", "Nombre", "Tipo", "Precio", "Stock", "Activo"}, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        tabla = new JTable(modeloTabla);
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
-
-        btnRegistrar.addActionListener(e -> {
-            // Igual que "opcion == 1" en menuProducto(...): usa siguienteIdProducto()
-            Producto nuevo = construirProducto(siguienteIdProducto());
-            if (nuevo == null) return;
-            try {
-                ProductoController.agregarProducto(nuevo);
-                JOptionPane.showMessageDialog(this, "Producto registrado correctamente.");
-                limpiarCampos();
-                refrescarTabla();
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        btnListar.addActionListener(e -> refrescarTabla());
-
-        btnActualizar.addActionListener(e -> {
-            // Igual que "opcion == 3": no se puede cambiar el tipo de producto
-            Integer id = leerId();
-            if (id == null) return;
-
-            Producto existente = ProductoController.buscarProducto(id);
-            if (existente == null) {
-                JOptionPane.showMessageDialog(this, "No se encontró un producto con ese ID.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            Producto actualizado = construirProducto(id);
-            if (actualizado == null) return;
-
-            if (!actualizado.getClass().equals(existente.getClass())) {
-                JOptionPane.showMessageDialog(this,
-                        "El tipo de producto no puede cambiar (era " +
-                                existente.getClass().getSimpleName() + "). Actualización cancelada.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            ProductoController.actualizarProducto(actualizado);
-            JOptionPane.showMessageDialog(this, "Producto actualizado.");
-            refrescarTabla();
-        });
-
-        btnEliminar.addActionListener(e -> {
-            // Igual que "opcion == 4"
-            Integer id = leerId();
-            if (id == null) return;
-            ProductoController.eliminarProducto(id);
-            refrescarTabla();
-        });
-
-        tabla.getSelectionModel().addListSelectionListener(e -> {
-            int fila2 = tabla.getSelectedRow();
-            if (fila2 < 0) return;
-            int id = (int) modeloTabla.getValueAt(fila2, 0);
-            Producto p = ProductoController.buscarProducto(id);
-            if (p == null) return;
-
-            txtId.setText(String.valueOf(p.getIdProducto()));
-            txtNombre.setText(p.getNombre());
-            txtDescripcion.setText(p.getDescripcion());
-            txtPrecio.setText(p.getPrecio().toString());
-            txtStock.setText(String.valueOf(p.getStock()));
-            chkActivo.setSelected(p.isEstado());
-
-            if (p instanceof Tamal tamal) {
-                comboTipoProducto.setSelectedItem("Tamal");
-                cardLayout.show(panelEspecifico, "Tamal");
-                comboTipoTamal.setSelectedItem(tamal.getTipo());
-                comboTamañoTamal.setSelectedItem(tamal.getTamaño());
-            } else if (p instanceof Lechona lechona) {
-                comboTipoProducto.setSelectedItem("Lechona");
-                cardLayout.show(panelEspecifico, "Lechona");
-                comboTamañoLechona.setSelectedItem(lechona.getTamaño());
-                txtPorciones.setText(String.valueOf(lechona.getNumeroPorciones()));
-            }
-        });
-
-        refrescarTabla();
+    private final JTextField nombre=new JTextField(20), descripcion=new JTextField(25), precio=new JTextField(10);
+    private final JSpinner stock=new JSpinner(new SpinnerNumberModel(0,0,100000,1)), porciones=new JSpinner(new SpinnerNumberModel(1,1,10000,1));
+    private final JComboBox<String> tipoProducto=new JComboBox<>(new String[]{"Tamal","Lechona"});
+    private final JComboBox<TipoTamal> tipoTamal=new JComboBox<>(TipoTamal.values()); private final JComboBox<TamanoTamal> tamañoTamal=new JComboBox<>(TamanoTamal.values()); private final JComboBox<TamanoLechona> tamañoLechona=new JComboBox<>(TamanoLechona.values());
+    private final CardLayout cards=new CardLayout(); private final JPanel especifico=new JPanel(cards); private final DefaultTableModel modelo=new DefaultTableModel(new Object[]{"ID","Producto","Categoría","Presentación","Precio","Stock"},0){public boolean isCellEditable(int r,int c){return false;}}; private final JTable tabla=new JTable(modelo);
+    private Integer idSeleccionado;
+    public ProductoPanel(){
+        setLayout(new BorderLayout(12,12));setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+        JPanel form=new JPanel(new GridBagLayout());form.setBorder(BorderFactory.createTitledBorder("Registrar producto"));GridBagConstraints g=new GridBagConstraints();g.insets=new Insets(5,5,5,5);g.fill=GridBagConstraints.HORIZONTAL;
+        add(form,g,0,"Tipo:",tipoProducto);add(form,g,1,"Nombre comercial:*",nombre);add(form,g,2,"Descripción:",descripcion);add(form,g,3,"Precio de venta:*",precio);add(form,g,4,"Stock inicial:",stock);
+        JPanel tamal=new JPanel(new GridLayout(2,2,5,5));tamal.add(new JLabel("Tipo de tamal:"));tamal.add(tipoTamal);tamal.add(new JLabel("Tamaño:"));tamal.add(tamañoTamal);
+        JPanel lechona=new JPanel(new GridLayout(2,2,5,5));lechona.add(new JLabel("Tamaño:"));lechona.add(tamañoLechona);lechona.add(new JLabel("Porciones:"));lechona.add(porciones);
+        especifico.add(tamal,"Tamal");especifico.add(lechona,"Lechona");g.gridy=5;g.gridx=0;g.gridwidth=2;form.add(especifico,g);tipoProducto.addActionListener(e->cards.show(especifico,(String)tipoProducto.getSelectedItem()));cards.show(especifico,"Tamal");
+        JPanel actions=new JPanel(new FlowLayout(FlowLayout.LEFT));JButton registrar=new JButton("Registrar producto");JButton guardar=new JButton("Guardar cambios");JButton eliminar=new JButton("Eliminar");JButton limpiar=new JButton("Nuevo / limpiar");actions.add(registrar);actions.add(guardar);actions.add(eliminar);actions.add(limpiar);
+        JPanel north=new JPanel(new BorderLayout());north.add(form,BorderLayout.CENTER);north.add(actions,BorderLayout.SOUTH);add(north,BorderLayout.NORTH);
+        tabla.setRowHeight(25);add(new JScrollPane(tabla),BorderLayout.CENTER);
+        registrar.addActionListener(e->registrar());guardar.addActionListener(e->editar());eliminar.addActionListener(e->eliminar());limpiar.addActionListener(e->limpiar());tabla.getSelectionModel().addListSelectionListener(e->cargar());refrescarTabla();
     }
-
-    /** Equivalente exacto a Main.capturarProducto(scanner, idProducto). */
-    private Producto construirProducto(int idProducto) {
-        String nombre = txtNombre.getText();
-        String descripcion = txtDescripcion.getText();
-
-        BigDecimal precio;
-        try {
-            precio = new BigDecimal(txtPrecio.getText().trim());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Precio inválido, se usará 0.");
-            precio = BigDecimal.ZERO;
-        }
-
-        int stock;
-        try {
-            stock = Integer.parseInt(txtStock.getText().trim());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Stock inválido.", "Error", JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
-
-        boolean estado = chkActivo.isSelected();
-        String tipoSeleccionado = (String) comboTipoProducto.getSelectedItem();
-
-        if ("Tamal".equals(tipoSeleccionado)) {
-            TipoTamal tipoTamal = (TipoTamal) comboTipoTamal.getSelectedItem();
-            TamañoTamal tamañoTamal = (TamañoTamal) comboTamañoTamal.getSelectedItem();
-            return new Tamal(idProducto, nombre, descripcion, precio, stock, estado, tipoTamal, tamañoTamal);
-        } else {
-            TamañoLechona tamañoLechona = (TamañoLechona) comboTamañoLechona.getSelectedItem();
-            int porciones;
-            try {
-                porciones = Integer.parseInt(txtPorciones.getText().trim());
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Número de porciones inválido.", "Error", JOptionPane.ERROR_MESSAGE);
-                return null;
-            }
-            return new Lechona(idProducto, nombre, descripcion, precio, stock, estado, tamañoLechona, porciones);
-        }
-    }
-
-    /** Igual a Main.siguienteIdProducto(). */
-    private int siguienteIdProducto() {
-        int max = 0;
-        for (Producto p : ProductoController.listarProductos()) {
-            if (p.getIdProducto() > max) {
-                max = p.getIdProducto();
-            }
-        }
-        return max + 1;
-    }
-
-    private void agregarCampo(JPanel panel, GridBagConstraints gbc, int fila, String etiqueta, JComponent campo) {
-        gbc.gridwidth = 1;
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        panel.add(new JLabel(etiqueta), gbc);
-        gbc.gridx = 1;
-        panel.add(campo, gbc);
-    }
-
-    private Integer leerId() {
-        try {
-            return Integer.parseInt(txtId.getText().trim());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID numérico válido.",
-                    "Entrada inválida", JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
-    }
-
-    private void limpiarCampos() {
-        txtId.setText("");
-        txtNombre.setText("");
-        txtDescripcion.setText("");
-        txtPrecio.setText("");
-        txtStock.setText("");
-        chkActivo.setSelected(true);
-        txtPorciones.setText("");
-    }
-
-    /** Equivalente a Main.mostrarProductosDisponibles() / ProductoView.mostrarProductos(...). */
-    public void refrescarTabla() {
-        modeloTabla.setRowCount(0);
-        List<Producto> productos = ProductoController.listarProductos();
-        for (Producto p : productos) {
-            modeloTabla.addRow(new Object[]{
-                    p.getIdProducto(), p.getNombre(), p.getClass().getSimpleName(),
-                    p.getPrecio(), p.getStock(), p.isEstado() ? "Sí" : "No"
-            });
-        }
-    }
+    private void registrar(){Producto p=construir(0);if(p==null)return;ProductoController.agregarProducto(p);mensaje("Producto registrado con ID "+p.getIdProducto());limpiar();refrescarTabla();}
+    private void editar(){if(idSeleccionado==null){aviso("Selecciona un producto de la tabla para editar.");return;}Producto actual=ProductoController.buscarProducto(idSeleccionado);if(actual==null)return;Producto p=construir(idSeleccionado);if(p==null)return;if(p.getClass()!=actual.getClass()){aviso("No se puede cambiar Tamal por Lechona en un mismo registro.");return;}ProductoController.actualizarProducto(p);mensaje("Producto actualizado.");refrescarTabla();}
+    private void eliminar(){if(idSeleccionado==null){aviso("Selecciona un producto para eliminar.");return;}if(JOptionPane.showConfirmDialog(this,"¿Eliminar el producto seleccionado?","Confirmar",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){ProductoController.eliminarProducto(idSeleccionado);limpiar();refrescarTabla();}}
+    private Producto construir(int id){String n=nombre.getText().trim();if(n.isEmpty()){aviso("El nombre comercial es obligatorio. Ejemplo: Tamal normal grande.");return null;}BigDecimal pr;try{pr=new BigDecimal(precio.getText().trim());if(pr.signum()<=0)throw new NumberFormatException();}catch(NumberFormatException ex){aviso("El precio debe ser un número mayor que 0.");return null;}int st=(Integer)stock.getValue();String t=(String)tipoProducto.getSelectedItem();if("Tamal".equals(t))return new Tamal(id,n,descripcion.getText().trim(),pr,st,true,(TipoTamal)tipoTamal.getSelectedItem(),(TamanoTamal)tamañoTamal.getSelectedItem());return new Lechona(id,n,descripcion.getText().trim(),pr,st,true,(TamanoLechona)tamañoLechona.getSelectedItem(),(Integer)porciones.getValue());}
+    private void cargar(){int r=tabla.getSelectedRow();if(r<0)return;idSeleccionado=(Integer)modelo.getValueAt(r,0);Producto p=ProductoController.buscarProducto(idSeleccionado);if(p==null)return;nombre.setText(p.getNombre());descripcion.setText(p.getDescripcion());precio.setText(p.getPrecio().toString());stock.setValue(p.getStock());if(p instanceof Tamal x){tipoProducto.setSelectedItem("Tamal");tipoTamal.setSelectedItem(x.getTipo());tamañoTamal.setSelectedItem(x.getTamaño());}else if(p instanceof Lechona x){tipoProducto.setSelectedItem("Lechona");tamañoLechona.setSelectedItem(x.getTamaño());porciones.setValue(x.getNumeroPorciones());}}
+    private void limpiar(){idSeleccionado=null;nombre.setText("");descripcion.setText("");precio.setText("");stock.setValue(0);porciones.setValue(1);tabla.clearSelection();}
+    public void refrescarTabla(){modelo.setRowCount(0);for(Producto p:ProductoController.listarProductos()){String presentacion=p instanceof Tamal x?x.getTipo()+" · "+x.getTamaño():((Lechona)p).getTamaño()+" · "+((Lechona)p).getNumeroPorciones()+" porciones";modelo.addRow(new Object[]{p.getIdProducto(),p.getNombre(),p instanceof Tamal?"Tamal":"Lechona",presentacion,p.getPrecio(),p.getStock()});}}
+    private void add(JPanel p,GridBagConstraints g,int y,String l,JComponent c){g.gridy=y;g.gridx=0;g.gridwidth=1;g.weightx=0;p.add(new JLabel(l),g);g.gridx=1;g.weightx=1;p.add(c,g);}private void mensaje(String s){JOptionPane.showMessageDialog(this,s,"Productos",JOptionPane.INFORMATION_MESSAGE);}private void aviso(String s){JOptionPane.showMessageDialog(this,s,"Productos",JOptionPane.WARNING_MESSAGE);}
 }

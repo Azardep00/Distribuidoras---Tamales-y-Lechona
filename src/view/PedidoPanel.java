@@ -1,284 +1,38 @@
 package view;
 
-import controller.PedidoController;
-import controller.UsuarioController;
-import model.Cliente;
-import model.MetodoPago;
-import model.Pedido;
-import pagos.AdaptadorPagoWompi;
-import pagos.ProcesadorPago;
+import controller.PedidoController; import controller.ProductoController; import controller.UsuarioController; import model.*; import pagos.AdaptadorPagoWompi; import pagos.ProcesadorPago;
+import javax.swing.*; import javax.swing.table.DefaultTableModel; import java.awt.*; import java.math.BigDecimal; import java.net.URI; import java.time.format.DateTimeFormatter; import java.util.*;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
-
+/** Flujo completo: cliente -> productos -> resumen -> crear pedido -> pagar. */
 public class PedidoPanel extends JPanel {
-
-    private static final DateTimeFormatter FORMATO_FECHA =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-
-    private final UsuarioController usuarioController;
-
-    private final DefaultTableModel modeloTabla;
-    private final JTable tabla;
-
-    // ----- Crear pedido -----
-    private final JComboBox<Cliente> comboCliente = new JComboBox<>();
-    private final JTextField txtIdPedido = new JTextField(5);
-    private final JComboBox<MetodoPago> comboMetodoPagoNuevo = new JComboBox<>(MetodoPago.values());
-    private final JTextField txtDireccionNueva = new JTextField(15);
-
-    // ----- Actualizar pedido -----
-    private final JTextField txtIdActualizar = new JTextField(5);
-    private final JCheckBox chkPago = new JCheckBox("Pedido pagado");
-    private final JComboBox<MetodoPago> comboMetodoPagoActualizar = new JComboBox<>(MetodoPago.values());
-    private final JTextField txtDireccionActualizar = new JTextField(15);
-
-    public PedidoPanel(UsuarioController usuarioController) {
-        this.usuarioController = usuarioController;
-
-        comboCliente.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                                                            boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Cliente c) {
-                    setText("#" + c.getIdUsuario() + " - " + c.getNombre() + " " + c.getApellido());
-                }
-                return this;
-            }
-        });
-
-        setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // ----- Panel: crear pedido -----
-        JPanel panelCrear = new JPanel(new GridBagLayout());
-        panelCrear.setBorder(BorderFactory.createTitledBorder("Crear pedido"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(4, 4, 4, 4);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        int fila = 0;
-        agregarCampo(panelCrear, gbc, fila++, "Cliente:", comboCliente);
-        agregarCampo(panelCrear, gbc, fila++, "ID pedido:", txtIdPedido);
-        agregarCampo(panelCrear, gbc, fila++, "Método de pago:", comboMetodoPagoNuevo);
-        agregarCampo(panelCrear, gbc, fila++, "Dirección de entrega:", txtDireccionNueva);
-
-        JButton btnCrear = new JButton("Crear pedido");
-        JButton btnPagarWompi = new JButton("Probar pago (Adapter Wompi)");
-        JPanel botonesCrear = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        botonesCrear.add(btnCrear);
-        botonesCrear.add(btnPagarWompi);
-
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.gridwidth = 2;
-        panelCrear.add(botonesCrear, gbc);
-
-        // ----- Panel: actualizar pedido -----
-        JPanel panelActualizar = new JPanel(new GridBagLayout());
-        panelActualizar.setBorder(BorderFactory.createTitledBorder("Actualizar / Eliminar pedido"));
-        GridBagConstraints gbc2 = new GridBagConstraints();
-        gbc2.insets = new Insets(4, 4, 4, 4);
-        gbc2.fill = GridBagConstraints.HORIZONTAL;
-
-        int fila2 = 0;
-        agregarCampo(panelActualizar, gbc2, fila2++, "ID pedido:", txtIdActualizar);
-        agregarCampo(panelActualizar, gbc2, fila2++, "¿Pagado?:", chkPago);
-        agregarCampo(panelActualizar, gbc2, fila2++, "Método de pago:", comboMetodoPagoActualizar);
-        agregarCampo(panelActualizar, gbc2, fila2++, "Nueva dirección:", txtDireccionActualizar);
-
-        JButton btnListar = new JButton("1. Listar pedidos");
-        JButton btnActualizar = new JButton("2. Actualizar pedido");
-        JButton btnEliminar = new JButton("3. Eliminar pedido");
-        JPanel botonesActualizar = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        botonesActualizar.add(btnListar);
-        botonesActualizar.add(btnActualizar);
-        botonesActualizar.add(btnEliminar);
-
-        gbc2.gridx = 0;
-        gbc2.gridy = fila2;
-        gbc2.gridwidth = 2;
-        panelActualizar.add(botonesActualizar, gbc2);
-
-        JPanel norte = new JPanel(new GridLayout(1, 2, 10, 0));
-        norte.add(panelCrear);
-        norte.add(panelActualizar);
-        add(norte, BorderLayout.NORTH);
-
-        modeloTabla = new DefaultTableModel(
-                new Object[]{"ID", "Estado", "Pago", "Método", "Entrega", "Fecha"}, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
-        tabla = new JTable(modeloTabla);
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
-
-        // ----- Acciones -----
-
-        btnCrear.addActionListener(e -> {
-            Cliente cliente = (Cliente) comboCliente.getSelectedItem();
-            if (cliente == null) {
-                JOptionPane.showMessageDialog(this,
-                        "Primero registre un cliente en la pestaña USUARIO.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            Integer idPedido;
-            try {
-                idPedido = Integer.parseInt(txtIdPedido.getText().trim());
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Ingrese un ID de pedido numérico válido.",
-                        "Entrada inválida", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            MetodoPago metodoPago = (MetodoPago) comboMetodoPagoNuevo.getSelectedItem();
-            String direccion = txtDireccionNueva.getText().isBlank()
-                    ? cliente.getDireccion() : txtDireccionNueva.getText();
-
-            Pedido pedido;
-
-            try {
-                pedido = PedidoController.crearPedido(idPedido, metodoPago, direccion);
-                cliente.agregarPedido(pedido);
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Pedido creado para el cliente: " + cliente.getNombre()
-                );
-
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Aviso: " + ex.getMessage(),
-                        "Aviso",
-                        JOptionPane.WARNING_MESSAGE
-                );
-            }
-
-            refrescarTabla();
-        });
-
-        btnPagarWompi.addActionListener(e -> {
-            int fila3 = tabla.getSelectedRow();
-            if (fila3 < 0) {
-                JOptionPane.showMessageDialog(this, "Seleccione un pedido de la tabla primero.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            int idPedido = (int) modeloTabla.getValueAt(fila3, 0);
-
-            ProcesadorPago procesador = new AdaptadorPagoWompi();
-            Pedido pedido = PedidoController.buscarPedido(idPedido);
-
-            if (pedido == null) {
-                JOptionPane.showMessageDialog(this, "No se encontró el pedido.");
-                return;
-            }
-
-            String linkDePago = procesador.procesarPago(
-                    pedido.getTotal(),
-                    "PED-" + idPedido
-            );
-
-            if (linkDePago != null) {
-                JOptionPane.showMessageDialog(this, "Envíale este link al cliente para pagar:\n" + linkDePago);
-            } else {
-                JOptionPane.showMessageDialog(this, "Hubo un error generando el pago.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        btnListar.addActionListener(e -> refrescarTabla());
-
-        btnActualizar.addActionListener(e -> {
-            Integer id = leerEntero(txtIdActualizar);
-            if (id == null) return;
-
-            Pedido existente = PedidoController.buscarPedido(id);
-            if (existente == null) {
-                JOptionPane.showMessageDialog(this, "No se encontró un pedido con ese ID.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            MetodoPago metodoPago = (MetodoPago) comboMetodoPagoActualizar.getSelectedItem();
-            Pedido datosNuevos = new Pedido(id, metodoPago, txtDireccionActualizar.getText());
-            datosNuevos.setPago(chkPago.isSelected());
-
-            PedidoController.actualizarPedido(datosNuevos);
-            JOptionPane.showMessageDialog(this, "Pedido actualizado.");
-            refrescarTabla();
-        });
-
-        btnEliminar.addActionListener(e -> {
-            Integer id = leerEntero(txtIdActualizar);
-            if (id == null) return;
-            PedidoController.eliminarPedido(id);
-            refrescarTabla();
-        });
-
-        tabla.getSelectionModel().addListSelectionListener(e -> {
-            int fila3 = tabla.getSelectedRow();
-            if (fila3 < 0) return;
-            int id = (int) modeloTabla.getValueAt(fila3, 0);
-            Pedido p = PedidoController.buscarPedido(id);
-            if (p == null) return;
-
-            txtIdActualizar.setText(String.valueOf(p.getIdPedido()));
-            chkPago.setSelected(p.isPago());
-            comboMetodoPagoActualizar.setSelectedItem(p.getMetodoPago());
-            txtDireccionActualizar.setText(p.getDireccionEntrega());
-        });
-
-        refrescarClientes();
-        refrescarTabla();
+    private static final DateTimeFormatter F=DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"); private final UsuarioController usuarios;
+    private final JComboBox<Cliente> cliente=new JComboBox<>(); private final JComboBox<Producto> producto=new JComboBox<>(); private final JSpinner cantidad=new JSpinner(new SpinnerNumberModel(1,1,10000,1));
+    private final JComboBox<MetodoPago> metodo=new JComboBox<>(MetodoPago.values()); private final JTextField direccion=new JTextField(25); private final JLabel total=new JLabel("Total: $0");
+    private final DefaultTableModel carritoModel=new DefaultTableModel(new Object[]{"Producto","Cantidad","Precio unitario","Subtotal"},0){public boolean isCellEditable(int r,int c){return false;}}; private final JTable carrito=new JTable(carritoModel);
+    private final DefaultTableModel pedidosModel=new DefaultTableModel(new Object[]{"ID","Cliente","Total","Estado","Pago","Método","Fecha"},0){public boolean isCellEditable(int r,int c){return false;}}; private final JTable pedidos=new JTable(pedidosModel);
+    private final Map<Integer,DetallePedido> detalles=new LinkedHashMap<>();
+    public PedidoPanel(UsuarioController usuarios){this.usuarios=usuarios;setLayout(new BorderLayout(12,12));setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+        cliente.setRenderer(rendererCliente()); producto.setRenderer(rendererProducto());
+        JPanel cab=new JPanel(new GridBagLayout());cab.setBorder(BorderFactory.createTitledBorder("1. Preparar pedido"));GridBagConstraints g=new GridBagConstraints();g.insets=new Insets(4,4,4,4);g.fill=GridBagConstraints.HORIZONTAL;
+        add(cab,g,0,"Cliente:",cliente);add(cab,g,1,"Producto:",producto);add(cab,g,2,"Cantidad:",cantidad);add(cab,g,3,"Dirección de entrega:",direccion);add(cab,g,4,"Método de pago:",metodo);
+        JPanel addRow=new JPanel(new FlowLayout(FlowLayout.LEFT));JButton agregar=new JButton("Agregar al pedido");JButton quitar=new JButton("Quitar seleccionado");JButton crear=new JButton("Crear pedido");JButton pagar=new JButton("Generar pago Wompi");addRow.add(agregar);addRow.add(quitar);addRow.add(crear);addRow.add(pagar);addRow.add(total);g.gridx=0;g.gridy=5;g.gridwidth=2;cab.add(addRow,g);
+        JPanel resumen=new JPanel(new BorderLayout(5,5));resumen.setBorder(BorderFactory.createTitledBorder("Resumen del pedido"));resumen.add(new JScrollPane(carrito),BorderLayout.CENTER);
+        JTabbedPane centro=new JTabbedPane();centro.addTab("Nuevo pedido",resumen);centro.addTab("Pedidos registrados",new JScrollPane(pedidos));
+        add(cab,BorderLayout.NORTH);add(centro,BorderLayout.CENTER);
+        agregar.addActionListener(e->agregarProducto());quitar.addActionListener(e->quitarProducto());crear.addActionListener(e->crearPedido(centro));pagar.addActionListener(e->pagarWompi());cliente.addActionListener(e->cargarDireccion());
+        pedidos.getSelectionModel().addListSelectionListener(e->{});refrescarClientes();refrescarProductos();refrescarTabla();
     }
-
-    /** Debe llamarse cuando se registre un cliente nuevo en la pestaña Usuario. */
-    public void refrescarClientes() {
-        Object seleccionado = comboCliente.getSelectedItem();
-        comboCliente.removeAllItems();
-        List<Cliente> clientes = usuarioController.listarClientes();
-        for (Cliente c : clientes) {
-            comboCliente.addItem(c);
-        }
-        if (seleccionado != null) comboCliente.setSelectedItem(seleccionado);
-    }
-
-    /** Igual que el "opcion == 1" (Listar pedidos) de menuPedido(...). */
-    public void refrescarTabla() {
-        modeloTabla.setRowCount(0);
-        List<Pedido> pedidos = PedidoController.listarPedidos();
-        for (Pedido p : pedidos) {
-            modeloTabla.addRow(new Object[]{
-                    p.getIdPedido(), p.getEstado(), p.isPago(), p.getMetodoPago(),
-                    p.getDireccionEntrega(), p.getFecha().format(FORMATO_FECHA)
-            });
-        }
-    }
-
-    private Integer leerEntero(JTextField campo) {
-        try {
-            return Integer.parseInt(campo.getText().trim());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID numérico válido.",
-                    "Entrada inválida", JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
-    }
-
-    private void agregarCampo(JPanel panel, GridBagConstraints gbc, int fila, String etiqueta, JComponent campo) {
-        gbc.gridwidth = 1;
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        panel.add(new JLabel(etiqueta), gbc);
-        gbc.gridx = 1;
-        panel.add(campo, gbc);
-    }
+    private DefaultListCellRenderer rendererCliente(){return new DefaultListCellRenderer(){public Component getListCellRendererComponent(JList<?> l,Object v,int i,boolean s,boolean f){super.getListCellRendererComponent(l,v,i,s,f);if(v instanceof Cliente c)setText(c.getNombre()+" "+c.getApellido());return this;}};}
+    private DefaultListCellRenderer rendererProducto(){return new DefaultListCellRenderer(){public Component getListCellRendererComponent(JList<?> l,Object v,int i,boolean s,boolean f){super.getListCellRendererComponent(l,v,i,s,f);if(v instanceof Producto p)setText(p.getNombre()+" · $"+p.getPrecio());return this;}};}
+    private void add(JPanel p,GridBagConstraints g,int y,String l,JComponent c){g.gridy=y;g.gridx=0;g.gridwidth=1;g.weightx=0;p.add(new JLabel(l),g);g.gridx=1;g.weightx=1;p.add(c,g);}
+    private void cargarDireccion(){Cliente c=(Cliente)cliente.getSelectedItem();if(c!=null&&direccion.getText().isBlank())direccion.setText(c.getDireccion());}
+    private void agregarProducto(){Producto p=(Producto)producto.getSelectedItem();if(p==null){aviso("No hay productos disponibles.");return;}int q=(Integer)cantidad.getValue();if(!p.consultarDisponibilidad(q)){aviso("No hay stock suficiente para esa cantidad.");return;}DetallePedido d=detalles.get(p.getIdProducto());if(d==null)detalles.put(p.getIdProducto(),new DetallePedido(p,q,p.getPrecio().doubleValue()));else d.setCantidad(d.getCantidad()+q);refrescarCarrito();}
+    private void quitarProducto(){int r=carrito.getSelectedRow();if(r<0)return;String name=(String)carritoModel.getValueAt(r,0);Producto found=ProductoController.buscarProducto(name);if(found!=null)detalles.remove(found.getIdProducto());refrescarCarrito();}
+    private void refrescarCarrito(){carritoModel.setRowCount(0);double t=0;for(DetallePedido d:detalles.values()){double sub=d.calcularSubtotal();t+=sub;carritoModel.addRow(new Object[]{d.getProducto().getNombre(),d.getCantidad(),d.getPrecioUnitario(),sub});}total.setText(String.format("Total: $%,.0f",t));}
+    private void crearPedido(JTabbedPane tabs){Cliente c=(Cliente)cliente.getSelectedItem();if(c==null){aviso("Selecciona un cliente.");return;}if(detalles.isEmpty()){aviso("Agrega al menos un producto al pedido.");return;}try{Pedido p=PedidoController.crearPedido((MetodoPago)metodo.getSelectedItem(),direccion.getText().trim());for(DetallePedido d:detalles.values())p.agregarDetalle(d);c.agregarPedido(p);mensaje("Pedido #"+p.getIdPedido()+" creado por "+String.format("$%,.0f",p.getTotal()));detalles.clear();refrescarCarrito();refrescarTabla();tabs.setSelectedIndex(1);}catch(Exception ex){aviso(ex.getMessage());}}
+    private void pagarWompi(){int r=pedidos.getSelectedRow();if(r<0){aviso("Selecciona un pedido de la tabla.");return;}int id=(Integer)pedidosModel.getValueAt(r,0);Pedido p=PedidoController.buscarPedido(id);if(p==null||p.getTotal()<=0){aviso("El pedido no tiene un total válido para pago.");return;}try{String url=new AdaptadorPagoWompi().procesarPago(p.getTotal(),"PED-"+id);if(url==null)throw new IllegalStateException("No se pudo generar el enlace. Configura la llave sandbox WOMPI_PRIVATE_KEY.");JOptionPane.showMessageDialog(this,"Enlace de pago generado. Se abrirá en tu navegador.\n"+url);Desktop.getDesktop().browse(URI.create(url));}catch(Exception ex){aviso("Pago Wompi: "+ex.getMessage());}}
+    public void refrescarClientes(){Object sel=cliente.getSelectedItem();cliente.removeAllItems();for(Cliente c:usuarios.listarClientes())cliente.addItem(c);if(sel!=null)cliente.setSelectedItem(sel);}
+    public void refrescarProductos(){Producto sel=(Producto)producto.getSelectedItem();producto.removeAllItems();for(Producto p:ProductoController.listarProductos())if(p.isEstado())producto.addItem(p);if(sel!=null)producto.setSelectedItem(sel);}
+    public void refrescarTabla(){pedidosModel.setRowCount(0);for(Pedido p:PedidoController.listarPedidos()){String clienteNom="-";for(Cliente c:usuarios.listarClientes())if(c.getPedidos().contains(p)){clienteNom=c.getNombre()+" "+c.getApellido();break;}pedidosModel.addRow(new Object[]{p.getIdPedido(),clienteNom,p.getTotal(),p.getEstado(),p.isPago()?"Sí":"No",p.getMetodoPago(),p.getFecha().format(F)});}}
+    private void mensaje(String s){JOptionPane.showMessageDialog(this,s,"Pedidos",JOptionPane.INFORMATION_MESSAGE);}private void aviso(String s){JOptionPane.showMessageDialog(this,s,"Pedidos",JOptionPane.WARNING_MESSAGE);}
 }

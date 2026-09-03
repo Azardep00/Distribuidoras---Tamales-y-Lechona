@@ -1,6 +1,6 @@
 package model;
 
-public enum TamañoTamal {
+public enum TamanoTamal {
     GRANDE,
     MEDIANO,
     PEQUEÑO
