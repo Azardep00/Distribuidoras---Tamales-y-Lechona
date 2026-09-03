@@ -10,7 +10,7 @@ import view.*;
 
 public class Main extends JFrame {
     public Main() {
-        super("Distribuidora Tamales & Lechona · Centro de operaciones");
+        super("El Lechon · Tamales y Lechona | Centro de operaciones");
         UI.init();
         getContentPane().setBackground(UI.BG);
         Distribuidora d = Distribuidora.getInstancia();
@@ -32,14 +32,11 @@ public class Main extends JFrame {
         PedidoPanel vPed = new PedidoPanel(uc, pc, pedidos);
         ResumenPanel dash = new ResumenPanel(pc, pedidos, prov);
         MainPanel root = new MainPanel(dash, vProv, vInv, vProd, vUsr, vPed);
-        JLabel brand = new JLabel("  " + d.getNombre() + "  ·  " + d.getDireccion());
-        brand.setFont(brand.getFont().deriveFont(Font.BOLD, 16f));
-        brand.setBorder(BorderFactory.createEmptyBorder(12, 6, 12, 6));
-        add(brand, BorderLayout.NORTH);
+        setLayout(new BorderLayout());
         add(root, BorderLayout.CENTER);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(1280, 800);
-        setMinimumSize(new Dimension(1100, 700));
+        setSize(1200, 800);
+        setMinimumSize(new Dimension(900, 620));
         setLocationRelativeTo(null);
     }
 

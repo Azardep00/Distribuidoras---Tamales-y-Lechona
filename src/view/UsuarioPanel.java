@@ -92,6 +92,7 @@ public class UsuarioPanel extends JPanel {
         s.add(all);
         list.add(s, BorderLayout.NORTH);
         table.setAutoCreateRowSorter(true);
+        UI.styleTable(table);
         list.add(new JScrollPane(table), BorderLayout.CENTER);
         add(list, BorderLayout.CENTER);
         tipo.addActionListener(e -> cards.show(specific, (String) tipo.getSelectedItem()));
@@ -103,10 +104,20 @@ public class UsuarioPanel extends JPanel {
         all.addActionListener(
                 e -> {
                     buscar.setText("");
-                    refrescar("");
+        refrescar("");
                 });
         table.getSelectionModel().addListSelectionListener(e -> cargar());
         cards.show(specific, "Cliente");
+        UI.styleField(nombre);
+        UI.styleField(apellido);
+        UI.styleField(telefono);
+        UI.styleField(correo);
+        UI.styleField(password);
+        UI.styleField(tipoCliente);
+        UI.styleField(direccion);
+        UI.styleField(cargo);
+        UI.styleField(contratacion);
+        UI.styleField(buscar);
         refrescar("");
     }
 
