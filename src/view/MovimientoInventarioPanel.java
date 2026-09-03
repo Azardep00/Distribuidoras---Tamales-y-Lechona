@@ -1,55 +1,163 @@
 package view;
 
-import controller.MovimientoInventarioController;
-import controller.ProductoController;
-import controller.ProveedorController;
-import model.*;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import controller.*;
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import model.*;
 
-/** Entradas/salidas con selección explícita. No existe proveedor preseleccionado. */
 public class MovimientoInventarioPanel extends JPanel {
-    private static final DateTimeFormatter F=DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private final MovimientoInventarioController movimientoController; private final ProveedorController proveedorController;
-    private final JComboBox<Producto> comboProducto=new JComboBox<>(); private final JComboBox<Proveedor> comboProveedor=new JComboBox<>();
-    private final JSpinner spinnerCantidad=new JSpinner(new SpinnerNumberModel(1,1,100000,1)); private final JTextField txtMotivo=new JTextField(22);
-    private final DefaultTableModel stockModel=new DefaultTableModel(new Object[]{"ID","Producto","Stock"},0){public boolean isCellEditable(int r,int c){return false;}};
-    private final DefaultTableModel movModel=new DefaultTableModel(new Object[]{"ID","Tipo","Producto","Cantidad","Fecha","Motivo","Proveedor"},0){public boolean isCellEditable(int r,int c){return false;}};
+  private final MovimientoInventarioController c;
+  private final ProveedorController pc;
+  private final ProductoController prod;
+  private final JComboBox<Producto> producto = new JComboBox<>();
+  private final JComboBox<Proveedor> proveedor = new JComboBox<>();
+  private final JSpinner cantidad = new JSpinner(new SpinnerNumberModel(1, 1, 100000, 1));
+  private final JTextField motivo = new JTextField(22);
+  private final JLabel modo = new JLabel("Entrada seleccionada: el proveedor es obligatorio.");
+  private final DefaultTableModel stock =
+      new DefaultTableModel(new Object[] {"ID", "Producto", "Tipo", "Stock", "Estado"}, 0) {
+        public boolean isCellEditable(int r, int col) {
+          return false;
+        }
+      };
+  private final DefaultTableModel mov =
+      new DefaultTableModel(
+          new Object[] {"ID", "Tipo", "Producto", "Cantidad", "Fecha", "Motivo", "Proveedor"}, 0) {
+        public boolean isCellEditable(int r, int col) {
+          return false;
+        }
+      };
 
-    public MovimientoInventarioPanel(MovimientoInventarioController mc, ProveedorController pc){
-        movimientoController=mc; proveedorController=pc; setLayout(new BorderLayout(12,12)); setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-        comboProducto.setRenderer(rendererProducto()); comboProveedor.setRenderer(rendererProveedor());
-        comboProducto.setToolTipText("Selecciona el producto al que afecta el movimiento"); comboProveedor.setToolTipText("Solo se usa en entradas");
-        JPanel form=new JPanel(new GridBagLayout()); form.setBorder(BorderFactory.createTitledBorder("Registrar movimiento")); GridBagConstraints g=new GridBagConstraints(); g.insets=new Insets(5,5,5,5); g.fill=GridBagConstraints.HORIZONTAL;
-        add(form,g,0,"Producto:",comboProducto); add(form,g,1,"Cantidad:",spinnerCantidad); add(form,g,2,"Motivo:",txtMotivo); add(form,g,3,"Proveedor (solo entrada):",comboProveedor);
-        JPanel actions=new JPanel(new FlowLayout(FlowLayout.LEFT)); JButton entrada=new JButton("Registrar entrada"); JButton salida=new JButton("Registrar salida"); JButton verProv=new JButton("Consultar proveedores"); actions.add(entrada);actions.add(salida);actions.add(verProv);
-        JPanel north=new JPanel(new BorderLayout()); north.add(form,BorderLayout.CENTER);north.add(actions,BorderLayout.SOUTH); add(north,BorderLayout.NORTH);
-        JTabbedPane tabs=new JTabbedPane(); JTable st=new JTable(stockModel); JTable mv=new JTable(movModel); st.setRowHeight(24);mv.setRowHeight(24); tabs.addTab("Stock actual",new JScrollPane(st)); tabs.addTab("Historial de movimientos",new JScrollPane(mv)); add(tabs,BorderLayout.CENTER);
-        entrada.addActionListener(e->registrar(TipoMovimiento.ENTRADA,tabs)); salida.addActionListener(e->registrar(TipoMovimiento.SALIDA,tabs)); verProv.addActionListener(e->new ProveedorPanel(proveedorController).mostrarConsulta());
-        comboProducto.addActionListener(e->actualizarProveedorHabilitado()); refrescarCombos(); refrescarStock(); refrescarMovimientos();
+  public MovimientoInventarioPanel(
+      MovimientoInventarioController c, ProveedorController pc, ProductoController prod) {
+    this.c = c;
+    this.pc = pc;
+    this.prod = prod;
+    setLayout(new BorderLayout(12, 12));
+    setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+    producto.setRenderer((l, v, i, s, f) -> cell("", v, i, s, f));
+    proveedor.setRenderer((l, v, i, s, f) -> cell("", v, i, s, f));
+    JPanel form = UI.card("Operación de inventario");
+    JPanel f = new JPanel(new GridBagLayout());
+    f.setOpaque(false);
+    GridBagConstraints g = new GridBagConstraints();
+    g.insets = new Insets(4, 4, 4, 4);
+    g.fill = GridBagConstraints.HORIZONTAL;
+    row(f, g, 0, "Producto *", producto);
+    row(f, g, 1, "Cantidad *", cantidad);
+    row(f, g, 2, "Motivo", motivo);
+    row(f, g, 3, "Proveedor (entrada)", proveedor);
+    form.add(f, BorderLayout.CENTER);
+    modo.setForeground(UI.MUTED);
+    JPanel a = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JButton en = UI.button("Registrar entrada"), sa = UI.button("Registrar salida");
+    a.add(en);
+    a.add(sa);
+    a.add(modo);
+    form.add(a, BorderLayout.SOUTH);
+    add(form, BorderLayout.NORTH);
+    JTabbedPane tabs = new JTabbedPane();
+    JTable ts = new JTable(stock), tm = new JTable(mov);
+    ts.setAutoCreateRowSorter(true);
+    tm.setAutoCreateRowSorter(true);
+    tabs.addTab("Stock actual", new JScrollPane(ts));
+    tabs.addTab("Historial", new JScrollPane(tm));
+    add(tabs, BorderLayout.CENTER);
+    en.addActionListener(e -> entrada());
+    sa.addActionListener(e -> salida());
+    producto.addActionListener(
+        e -> modo.setText("Entrada seleccionada: el proveedor es obligatorio."));
+    refrescarCombos();
+    refrescarTablas();
+  }
+
+  private Component cell(String x, Object v, int i, boolean s, boolean f) {
+    Component cmp =
+        new DefaultListCellRenderer().getListCellRendererComponent(new JList<>(), v, i, s, f);
+    JLabel l = (JLabel) cmp;
+    if (v == null) l.setText("—");
+    else if (v instanceof Producto p) l.setText(p.getNombre() + " · stock " + p.getStock());
+    else if (v instanceof Proveedor p) l.setText(p.getNombre());
+    return l;
+  }
+
+  private void row(JPanel p, GridBagConstraints g, int y, String l, JComponent x) {
+    g.gridy = y;
+    g.gridx = 0;
+    g.weightx = 0;
+    p.add(new JLabel(l), g);
+    g.gridx = 1;
+    g.weightx = 1;
+    p.add(x, g);
+  }
+
+  private void entrada() {
+    try {
+      Producto p = (Producto) producto.getSelectedItem();
+      Proveedor pr = (Proveedor) proveedor.getSelectedItem();
+      c.registrarEntrada(p, (Integer) cantidad.getValue(), pr, motivo.getText().trim());
+      UI.info(this, "Entrada registrada. Stock actual: " + p.getStock());
+      reset();
+      refrescarTablas();
+    } catch (Exception e) {
+      UI.warn(this, e.getMessage());
     }
-    private DefaultListCellRenderer rendererProducto(){return new DefaultListCellRenderer(){public Component getListCellRendererComponent(JList<?> l,Object v,int i,boolean s,boolean f){super.getListCellRendererComponent(l,v,i,s,f); if(v instanceof Producto p)setText(p.getNombre()+" · stock "+p.getStock()); return this;}};}
-    private DefaultListCellRenderer rendererProveedor(){return new DefaultListCellRenderer(){public Component getListCellRendererComponent(JList<?> l,Object v,int i,boolean s,boolean f){super.getListCellRendererComponent(l,v,i,s,f); if(v instanceof Proveedor p)setText(p.getNombre()+" · #"+p.getIdProveedor()); return this;}};}
-    private void add(JPanel p,GridBagConstraints g,int y,String label,JComponent c){g.gridy=y;g.gridx=0;g.weightx=0;p.add(new JLabel(label),g);g.gridx=1;g.weightx=1;p.add(c,g);}
-    private void registrar(TipoMovimiento tipo,JTabbedPane tabs){
-        Producto producto=(Producto)comboProducto.getSelectedItem(); if(producto==null){aviso("No hay productos disponibles.");return;}
-        int cant=(Integer)spinnerCantidad.getValue(); if(cant<=0)return;
-        if(tipo==TipoMovimiento.SALIDA && !producto.consultarDisponibilidad(cant)){aviso("No hay stock suficiente para realizar la salida.");return;}
-        Proveedor prov=null; if(tipo==TipoMovimiento.ENTRADA){prov=(Proveedor)comboProveedor.getSelectedItem(); if(prov==null){aviso("Selecciona un proveedor para registrar una entrada.");return;}}
-        MovimientoInventario m=(prov==null?new MovimientoInventario(0,tipo,cant,txtMotivo.getText().trim(),producto):new MovimientoInventario(0,tipo,cant,txtMotivo.getText().trim(),producto,prov));
-        if(!movimientoController.registrarMovimiento(m)){aviso("No se pudo registrar el movimiento.");return;}
-        mensaje((tipo==TipoMovimiento.ENTRADA?"Entrada":"Salida")+" registrada. Stock actual: "+producto.getStock()); spinnerCantidad.setValue(1);txtMotivo.setText("");refrescarCombos();refrescarStock();refrescarMovimientos();tabs.setSelectedIndex(0);
+  }
+
+  private void salida() {
+    try {
+      Producto p = (Producto) producto.getSelectedItem();
+      c.registrarSalida(p, (Integer) cantidad.getValue(), motivo.getText().trim());
+      UI.info(this, "Salida registrada. Stock actual: " + p.getStock());
+      reset();
+      refrescarTablas();
+    } catch (Exception e) {
+      UI.warn(this, e.getMessage());
     }
-    private void actualizarProveedorHabilitado(){comboProveedor.setEnabled(comboProducto.getSelectedItem()!=null);}
-    public void refrescarCombos(){
-        Producto sel=(Producto)comboProducto.getSelectedItem(); comboProducto.removeAllItems(); for(Producto p:ProductoController.listarProductos())comboProducto.addItem(p); if(sel!=null)comboProducto.setSelectedItem(sel);
-        // Nunca se selecciona automáticamente el primer proveedor.
-        comboProveedor.removeAllItems(); comboProveedor.addItem(null); for(Proveedor p:proveedorController.listarProveedores())comboProveedor.addItem(p); comboProveedor.setSelectedIndex(0); actualizarProveedorHabilitado();
-    }
-    public void refrescarStock(){stockModel.setRowCount(0);for(Producto p:ProductoController.listarProductos())stockModel.addRow(new Object[]{p.getIdProducto(),p.getNombre(),p.getStock()});}
-    public void refrescarMovimientos(){movModel.setRowCount(0);for(MovimientoInventario m:movimientoController.listarMovimientos())movModel.addRow(new Object[]{m.getIdMovimiento(),m.getTipo(),m.getProducto().getNombre(),m.getCantidad(),m.getFecha().format(F),m.getMotivo(),m.getProveedor()==null?"-":m.getProveedor().getNombre()});}
-    private void aviso(String s){JOptionPane.showMessageDialog(this,s,"Inventario",JOptionPane.WARNING_MESSAGE);} private void mensaje(String s){JOptionPane.showMessageDialog(this,s,"Inventario",JOptionPane.INFORMATION_MESSAGE);}
+  }
+
+  private void reset() {
+    cantidad.setValue(1);
+    motivo.setText("");
+    refrescarCombos();
+  }
+
+  public void refrescarCombos() {
+    Object sel = producto.getSelectedItem();
+    producto.removeAllItems();
+    for (Producto p : prod.listar(false)) producto.addItem(p);
+    if (sel != null) producto.setSelectedItem(sel);
+    proveedor.removeAllItems();
+    proveedor.addItem(null);
+    for (Proveedor p : pc.listarActivos()) proveedor.addItem(p);
+    proveedor.setSelectedIndex(0);
+  }
+
+  public void refrescarTablas() {
+    stock.setRowCount(0);
+    for (Producto p : prod.listar(true))
+      stock.addRow(
+          new Object[] {
+            p.getIdProducto(),
+            p.getNombre(),
+            p.getTipoProducto(),
+            p.getStock(),
+            p.isEstado() ? "Activo" : "Inactivo"
+          });
+    mov.setRowCount(0);
+    DateTimeFormatter f = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    for (MovimientoInventario x : c.listar())
+      mov.addRow(
+          new Object[] {
+            x.getIdMovimiento(),
+            x.getTipo(),
+            x.getProducto().getNombre(),
+            x.getCantidad(),
+            x.getFecha().format(f),
+            x.getMotivo(),
+            x.getProveedor() == null ? "—" : x.getProveedor().getNombre()
+          });
+  }
 }

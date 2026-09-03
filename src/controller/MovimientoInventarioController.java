@@ -1,75 +1,72 @@
 package controller;
 
-import model.MovimientoInventario;
-import model.TipoMovimiento;
+import java.util.*;
+import model.*;
+import observer.*;
 import repository.IMovimientoInventarioRepository;
-import model.Producto;
 
-import java.util.List;
-
-/**
- * PRINCIPIO SRP: ya no imprime en consola (eso lo hace view.MovimientoInventarioView).
- * PRINCIPIO DIP: depende de IMovimientoInventarioRepository, no de un ArrayList concreto.
- */
 public class MovimientoInventarioController {
+  private final IMovimientoInventarioRepository repo;
+  private int siguienteId = 1;
+  private final List<InventarioObserver> observers = new ArrayList<>();
 
-    private final IMovimientoInventarioRepository repositorio;
-    private int siguienteId;
+  public MovimientoInventarioController(IMovimientoInventarioRepository repo) {
+    this.repo = repo;
+    agregarObserver(new AuditoriaInventario());
+    agregarObserver(new AlertaStock(5));
+  }
 
-    public MovimientoInventarioController(IMovimientoInventarioRepository repositorio) {
-        this.repositorio = repositorio;
-        this.siguienteId = 1;
-    }
+  public void agregarObserver(InventarioObserver o) {
+    if (o != null && !observers.contains(o)) observers.add(o);
+  }
 
-    public boolean registrarMovimiento(MovimientoInventario movimiento) {
+  public MovimientoInventario registrarEntrada(
+      Producto p, int cantidad, Proveedor proveedor, String motivo) {
+    if (p == null || proveedor == null)
+      throw new IllegalArgumentException("Producto y proveedor son obligatorios para una entrada.");
+    validarCantidad(cantidad);
+    MovimientoInventario m =
+        new MovimientoInventario(
+            siguienteId++, TipoMovimiento.ENTRADA, cantidad, motivo, p, proveedor);
+    p.aumentarStock(cantidad);
+    guardar(m);
+    return m;
+  }
 
-        if (movimiento == null || movimiento.getProducto() == null) {
-            return false;
-        }
+  public MovimientoInventario registrarReversion(Producto p, int cantidad, String motivo) {
+    if (p == null) throw new IllegalArgumentException("Producto obligatorio.");
+    validarCantidad(cantidad);
+    MovimientoInventario m =
+        new MovimientoInventario(siguienteId++, TipoMovimiento.ENTRADA, cantidad, motivo, p, null);
+    p.aumentarStock(cantidad);
+    guardar(m);
+    return m;
+  }
 
-        Producto producto = movimiento.getProducto();
-        int cantidad = movimiento.getCantidad();
+  public MovimientoInventario registrarSalida(Producto p, int cantidad, String motivo) {
+    if (p == null) throw new IllegalArgumentException("Producto obligatorio.");
+    validarCantidad(cantidad);
+    p.descontarStock(cantidad);
+    MovimientoInventario m =
+        new MovimientoInventario(siguienteId++, TipoMovimiento.SALIDA, cantidad, motivo, p);
+    guardar(m);
+    return m;
+  }
 
-        if (cantidad <= 0) {
-            return false;
-        }
+  private void guardar(MovimientoInventario m) {
+    repo.guardar(m);
+    for (InventarioObserver o : observers) o.actualizar(m);
+  }
 
-        if (movimiento.getTipo() == TipoMovimiento.ENTRADA) {
+  private void validarCantidad(int c) {
+    if (c <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor que 0.");
+  }
 
-            producto.setStock(producto.getStock() + cantidad);
+  public List<MovimientoInventario> listar() {
+    return repo.listarTodos();
+  }
 
-        } else if (movimiento.getTipo() == TipoMovimiento.SALIDA) {
-
-            if (!producto.consultarDisponibilidad(cantidad)) {
-                return false;
-            }
-
-            producto.setStock(producto.getStock() - cantidad);
-
-        } else {
-            return false;
-        }
-
-        movimiento.setIdMovimiento(siguienteId);
-        repositorio.guardar(movimiento);
-        siguienteId++;
-
-        return true;
-    }
-
-    public List<MovimientoInventario> listarMovimientos() {
-        return repositorio.listarTodos();
-    }
-
-    public MovimientoInventario buscarMovimiento(int idMovimiento) {
-        return repositorio.buscarPorId(idMovimiento);
-    }
-
-    public List<MovimientoInventario> listarMovimientosPorProducto(int idProducto) {
-        return repositorio.listarPorProducto(idProducto);
-    }
-
-    public List<MovimientoInventario> listarMovimientosPorTipo(TipoMovimiento tipo) {
-        return repositorio.listarPorTipo(tipo);
-    }
+  public int totalMovimientos() {
+    return repo.listarTodos().size();
+  }
 }

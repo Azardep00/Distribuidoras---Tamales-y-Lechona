@@ -1,6 +1,5 @@
- package model;
+package model;
 
-    public interface IActualizableUsuario {
-        void actualizarDatos(Usuario usuarioConNuevosDatos);
-    }
-
+public interface IActualizableUsuario {
+  void actualizarDatos(Usuario usuarioConNuevosDatos);
+}

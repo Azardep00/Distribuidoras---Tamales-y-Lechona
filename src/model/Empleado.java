@@ -1,41 +1,48 @@
 package model;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 public class Empleado extends Usuario implements IActualizableUsuario {
+  private String cargo;
+  private Date fechaContratacion;
 
-    private String cargo;
-    private Date fechaContratacion;
+  public Empleado(
+      int id,
+      String n,
+      String a,
+      String t,
+      String c,
+      String p,
+      boolean e,
+      LocalDate fn,
+      String cargo,
+      Date fc) {
+    super(id, n, a, t, c, p, e, fn);
+    this.cargo = cargo;
+    fechaContratacion = fc;
+  }
 
-    public Empleado(int idUsuario, String nombre, String apellido, String telefono,
-                    String correo, String contrasena, boolean estado, java.time.LocalDate fechaNacimiento,
-                    String cargo, Date fechaContratacion) {
-        super(idUsuario, nombre, apellido, telefono, correo, contrasena, estado, fechaNacimiento);
-        this.cargo = cargo;
-        this.fechaContratacion = fechaContratacion;
+  public String getCargo() {
+    return cargo;
+  }
+
+  public void setCargo(String v) {
+    cargo = v;
+  }
+
+  public Date getFechaContratacion() {
+    return fechaContratacion;
+  }
+
+  public void setFechaContratacion(Date v) {
+    fechaContratacion = v;
+  }
+
+  public void actualizarDatos(Usuario u) {
+    if (u instanceof Empleado e) {
+      cargo = e.cargo;
+      fechaContratacion = e.fechaContratacion;
     }
-
-    public String getCargo() { return cargo; }
-    public void setCargo(String cargo) { this.cargo = cargo; }
-
-    public Date getFechaContratacion() { return fechaContratacion; }
-    public void setFechaContratacion(Date fechaContratacion) { this.fechaContratacion = fechaContratacion; }
-
-    // Actualiza solo lo propio de Empleado (los datos comunes los actualiza Usuario.actualizarDatos())
-    @Override
-    public void actualizarDatos(Usuario usuarioConNuevosDatos) {
-        if (usuarioConNuevosDatos instanceof Empleado) {
-            Empleado empleadoNuevo = (Empleado) usuarioConNuevosDatos;
-            this.cargo = empleadoNuevo.getCargo();
-            this.fechaContratacion = empleadoNuevo.getFechaContratacion();
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "Empleado{" +
-                "cargo='" + cargo + '\'' +
-                ", fechaContratacion=" + fechaContratacion +
-                "} " + super.toString();
-    }
+  }
 }

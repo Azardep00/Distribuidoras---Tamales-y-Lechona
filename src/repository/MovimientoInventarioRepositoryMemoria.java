@@ -1,58 +1,30 @@
 package repository;
 
-import model.MovimientoInventario;
-import model.TipoMovimiento;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import model.*;
 
 public class MovimientoInventarioRepositoryMemoria implements IMovimientoInventarioRepository {
+  private final List<MovimientoInventario> datos = new ArrayList<>();
 
-    private List<MovimientoInventario> movimientos;
+  public void guardar(MovimientoInventario m) {
+    datos.add(m);
+  }
 
-    public MovimientoInventarioRepositoryMemoria() {
-        this.movimientos = new ArrayList<>();
-    }
+  public List<MovimientoInventario> listarTodos() {
+    return new ArrayList<>(datos);
+  }
 
-    @Override
-    public void guardar(MovimientoInventario movimiento) {
-        movimientos.add(movimiento);
-    }
+  public MovimientoInventario buscarPorId(int id) {
+    return datos.stream().filter(m -> m.getIdMovimiento() == id).findFirst().orElse(null);
+  }
 
-    @Override
-    public List<MovimientoInventario> listarTodos() {
-        return movimientos;
-    }
+  public List<MovimientoInventario> listarPorProducto(int id) {
+    return datos.stream()
+        .filter(m -> m.getProducto() != null && m.getProducto().getIdProducto() == id)
+        .toList();
+  }
 
-    @Override
-    public MovimientoInventario buscarPorId(int idMovimiento) {
-        for (MovimientoInventario movimiento : movimientos) {
-            if (movimiento.getIdMovimiento() == idMovimiento) {
-                return movimiento;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public List<MovimientoInventario> listarPorProducto(int idProducto) {
-        List<MovimientoInventario> resultado = new ArrayList<>();
-        for (MovimientoInventario movimiento : movimientos) {
-            if (movimiento.getProducto().getIdProducto() == idProducto) {
-                resultado.add(movimiento);
-            }
-        }
-        return resultado;
-    }
-
-    @Override
-    public List<MovimientoInventario> listarPorTipo(TipoMovimiento tipo) {
-        List<MovimientoInventario> resultado = new ArrayList<>();
-        for (MovimientoInventario movimiento : movimientos) {
-            if (movimiento.getTipo() == tipo) {
-                resultado.add(movimiento);
-            }
-        }
-        return resultado;
-    }
+  public List<MovimientoInventario> listarPorTipo(TipoMovimiento t) {
+    return datos.stream().filter(m -> m.getTipo() == t).toList();
+  }
 }

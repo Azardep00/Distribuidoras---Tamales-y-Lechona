@@ -1,19 +1,16 @@
 package repository;
 
-import model.MovimientoInventario;
-import model.TipoMovimiento;
-
-import java.util.List;
+import java.util.*;
+import model.*;
 
 public interface IMovimientoInventarioRepository {
+  void guardar(MovimientoInventario m);
 
-    void guardar(MovimientoInventario movimiento);
+  List<MovimientoInventario> listarTodos();
 
-    List<MovimientoInventario> listarTodos();
+  MovimientoInventario buscarPorId(int id);
 
-    MovimientoInventario buscarPorId(int idMovimiento);
+  List<MovimientoInventario> listarPorProducto(int idProducto);
 
-    List<MovimientoInventario> listarPorProducto(int idProducto);
-
-    List<MovimientoInventario> listarPorTipo(TipoMovimiento tipo);
+  List<MovimientoInventario> listarPorTipo(TipoMovimiento tipo);
 }

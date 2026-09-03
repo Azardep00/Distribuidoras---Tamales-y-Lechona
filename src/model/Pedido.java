@@ -1,167 +1,162 @@
 package model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import observer.PedidoObserver;
 
-/**
- * PRINCIPIO ISP: Pedido implementa ActualizablePedido, que antes existía
- * en el proyecto pero ninguna clase la usaba (interfaz "muerta").
- * Ahora Pedido es responsable de saber actualizar sus propios datos editables,
- * en vez de que PedidoController le "meta la mano" copiando campos uno por uno.
- */
-public class Pedido implements ActualizablePedido
-{
+public class Pedido implements ActualizablePedido {
+  private final int idPedido;
+  private final LocalDateTime fecha;
+  private EstadoPedido estado;
+  private BigDecimal total = BigDecimal.ZERO;
+  private boolean pago;
+  private MetodoPago metodoPago;
+  private String direccionEntrega;
+  private LocalDateTime fechaEntrega;
+  private final Cliente cliente;
+  private boolean inventarioDescontado;
+  private final List<DetallePedido> detalles = new ArrayList<>();
+  private final List<PedidoObserver> observadores = new ArrayList<>();
 
-    // ===== ATRIBUTOS =====
-    private int idPedido;
-    private LocalDateTime fecha;
-    private EstadoPedido estado;
-    private double total;
-    private boolean pago;
-    private MetodoPago metodoPago;
-    private String direccionEntrega;
-    private LocalDateTime fechaEntrega;
+  public Pedido(int id, Cliente cliente, MetodoPago metodo, String direccion) {
+    if (cliente == null) throw new IllegalArgumentException("El cliente es obligatorio.");
+    if (metodo == null) throw new IllegalArgumentException("El método de pago es obligatorio.");
+    if (direccion == null || direccion.isBlank())
+      throw new IllegalArgumentException("La dirección de entrega es obligatoria.");
+    idPedido = id;
+    this.cliente = cliente;
+    metodoPago = metodo;
+    direccionEntrega = direccion.trim();
+    fecha = LocalDateTime.now();
+    estado = EstadoPedido.PENDIENTE;
+  }
 
-    private List<DetallePedido> detalles;
+  public int getIdPedido() {
+    return idPedido;
+  }
 
-    // ===== CONSTRUCTOR =====
-    public Pedido(int idPedido, MetodoPago metodoPago, String direccionEntrega)
-    {
-        this.idPedido = idPedido;
+  public LocalDateTime getFecha() {
+    return fecha;
+  }
 
-        this.fecha = LocalDateTime.now();
-        this.estado = EstadoPedido.PENDIENTE;
-        this.total = 0.0;
-        this.pago = false;
-        this.metodoPago = metodoPago;
-        this.direccionEntrega = direccionEntrega;
-        this.fechaEntrega = null;
-        this.detalles = new ArrayList<>();
-    }
+  public EstadoPedido getEstado() {
+    return estado;
+  }
 
-    // ===== GETTERS AND SETTERS =====
-    public int getIdPedido() { return idPedido; }
+  public BigDecimal getTotal() {
+    return total;
+  }
 
-    public LocalDateTime getFecha() { return fecha; }
+  public boolean isPago() {
+    return pago;
+  }
 
-    public EstadoPedido getEstado() { return estado; }
+  public MetodoPago getMetodoPago() {
+    return metodoPago;
+  }
 
-    public double getTotal() { return total; }
+  public String getDireccionEntrega() {
+    return direccionEntrega;
+  }
 
-    public boolean isPago() { return pago; }
+  public LocalDateTime getFechaEntrega() {
+    return fechaEntrega;
+  }
 
-    public MetodoPago getMetodoPago() { return metodoPago; }
+  public Cliente getCliente() {
+    return cliente;
+  }
 
-    public String getDireccionEntrega() { return direccionEntrega; }
+  public boolean isInventarioDescontado() {
+    return inventarioDescontado;
+  }
 
+  public void setInventarioDescontado(boolean v) {
+    inventarioDescontado = v;
+  }
 
-    public LocalDateTime getFechaEntrega() { return fechaEntrega; }
+  public List<DetallePedido> getDetalles() {
+    return new ArrayList<>(detalles);
+  }
 
+  public void setPago(boolean v) {
+    pago = v;
+    if (v && estado == EstadoPedido.CONFIRMADO) cambiarEstado(EstadoPedido.PAGADO);
+  }
 
-    public List<DetallePedido> getDetalles() { return new ArrayList<>(detalles); }
+  public void setMetodoPago(MetodoPago v) {
+    metodoPago = v;
+  }
 
-    public void setPago(boolean pago) { this.pago = pago; }
+  public void setDireccionEntrega(String v) {
+    direccionEntrega = v;
+  }
 
-    public void setMetodoPago(MetodoPago metodoPago) { this.metodoPago = metodoPago; }
+  public void agregarDetalle(DetallePedido d) {
+    if (d == null) throw new IllegalArgumentException("Detalle inválido.");
+    detalles.add(d);
+    calcularTotal();
+  }
 
-    public void setDireccionEntrega(String direccionEntrega) { this.direccionEntrega = direccionEntrega; }
+  public void eliminarDetalle(DetallePedido d) {
+    detalles.remove(d);
+    calcularTotal();
+  }
 
-    // ===== MÉTODOS =====
+  public BigDecimal calcularTotal() {
+    total =
+        detalles.stream()
+            .map(DetallePedido::calcularSubtotal)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    return total;
+  }
 
-    public double calcularTotal()
-    {
-        this.total = 0.0;
-        for (DetallePedido d : detalles) {
-            this.total += d.calcularSubtotal();
-        }
-        return this.total;
-    }
+  public void cambiarEstado(EstadoPedido nuevo) {
+    if (nuevo == null || estado == EstadoPedido.ENTREGADO || estado == EstadoPedido.CANCELADO)
+      throw new IllegalStateException("El pedido no admite más cambios de estado.");
+    if (!transicionValida(estado, nuevo))
+      throw new IllegalStateException("No se puede pasar de " + estado + " a " + nuevo + ".");
+    estado = nuevo;
+    if (nuevo == EstadoPedido.ENTREGADO) fechaEntrega = LocalDateTime.now();
+    notificar();
+  }
 
-    public void cambiarEstado(EstadoPedido nuevoEstado) {
+  private boolean transicionValida(EstadoPedido a, EstadoPedido b) {
+    return switch (a) {
+      case PENDIENTE -> b == EstadoPedido.CONFIRMADO || b == EstadoPedido.CANCELADO;
+      case CONFIRMADO ->
+          b == EstadoPedido.PAGADO
+              || b == EstadoPedido.EN_PREPARACION
+              || b == EstadoPedido.CANCELADO;
+      case PAGADO -> b == EstadoPedido.EN_PREPARACION || b == EstadoPedido.CANCELADO;
+      case EN_PREPARACION -> b == EstadoPedido.LISTO || b == EstadoPedido.CANCELADO;
+      case LISTO -> b == EstadoPedido.ENTREGADO || b == EstadoPedido.CANCELADO;
+      default -> false;
+    };
+  }
 
-        if (this.estado == EstadoPedido.CANCELADO ||
-                this.estado == EstadoPedido.ENTREGADO) {
-            return;
-        }
+  public void cancelar() {
+    if (estado == EstadoPedido.CANCELADO || estado == EstadoPedido.ENTREGADO)
+      throw new IllegalStateException("El pedido no se puede cancelar.");
+    estado = EstadoPedido.CANCELADO;
+    notificar();
+  }
 
-        if (nuevoEstado == null) {
-            return;
-        }
+  public void actualizarPedido(Pedido p) {
+    setMetodoPago(p.metodoPago);
+    setDireccionEntrega(p.direccionEntrega);
+  }
 
-        this.estado = nuevoEstado;
-        notificarObservadores();
-    }
+  public void agregarObserver(PedidoObserver o) {
+    if (o != null && !observadores.contains(o)) observadores.add(o);
+  }
 
-    public void cancelar() {
-        if (this.estado == EstadoPedido.ENTREGADO ||
-                this.estado == EstadoPedido.CANCELADO) {
-            return;
-        }
+  public void removerObserver(PedidoObserver o) {
+    observadores.remove(o);
+  }
 
-        this.estado = EstadoPedido.CANCELADO;
-        notificarObservadores();
-    }
-
-    public void confirmarEntrega() {
-
-        if (this.estado == EstadoPedido.CANCELADO ||
-                this.estado == EstadoPedido.ENTREGADO) {
-            return;
-        }
-
-        this.estado = EstadoPedido.ENTREGADO;
-        this.fechaEntrega = LocalDateTime.now();
-
-        notificarObservadores();
-    }
-
-    @Override
-    public void actualizarPedido(Pedido pedido) {
-        if (pedido == null) {
-            return;
-        }
-
-        this.pago = pedido.isPago();
-        this.metodoPago = pedido.getMetodoPago();
-        this.direccionEntrega = pedido.getDireccionEntrega();
-    }
-
-    private List<PedidoObserver> observadores = new ArrayList<>();
-
-    public void agregarObserver(PedidoObserver observer) {
-        if (observer != null && !observadores.contains(observer)) {
-            observadores.add(observer);
-        }
-    }
-
-    public void removerObserver(PedidoObserver observer) {
-        observadores.remove(observer);
-    }
-
-    private void notificarObservadores() {
-        for (PedidoObserver observer : observadores) {
-            observer.actualizar(this);
-        }
-    }
-
-    public void agregarDetalle(DetallePedido detalle) {
-        if (detalle == null) {
-            return;
-        }
-
-        detalles.add(detalle);
-        calcularTotal();
-    }
-
-    public void eliminarDetalle(DetallePedido detalle) {
-        if (detalle == null) {
-            return;
-        }
-
-        detalles.remove(detalle);
-        calcularTotal();
-    }
-
+  private void notificar() {
+    for (PedidoObserver o : observadores) o.actualizar(this);
+  }
 }

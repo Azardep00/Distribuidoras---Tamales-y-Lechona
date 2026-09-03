@@ -3,53 +3,48 @@ package model;
 import java.math.BigDecimal;
 
 public class Tamal extends Producto implements IActualizableProducto {
+  private TipoTamal tipo;
+  private TamanoTamal tamaño;
 
-    // Atributos
+  public Tamal(
+      int id, String n, String d, BigDecimal p, int s, boolean e, TipoTamal t, TamanoTamal z) {
+    super(id, n, d, p, s, e);
+    tipo = t;
+    tamaño = z;
+  }
 
-    private TipoTamal tipo;
-    private TamanoTamal tamaño;
+  public TipoTamal getTipo() {
+    return tipo;
+  }
 
-    // Constructor
+  public void setTipo(TipoTamal v) {
+    tipo = v;
+  }
 
-    public Tamal(int idProducto, String nombre, String descripcion, BigDecimal precio,
-                 int stock, boolean estado, TipoTamal tipo, TamanoTamal tamaño)
-    {
-        super(idProducto, nombre, descripcion, precio, stock, estado);
-        this.tipo = tipo;
-        this.tamaño = tamaño;
+  public TamanoTamal getTamaño() {
+    return tamaño;
+  }
+
+  public void setTamaño(TamanoTamal v) {
+    tamaño = v;
+  }
+
+  public void actualizarDatos(Producto p) {
+    if (p instanceof Tamal t) {
+      tipo = t.tipo;
+      tamaño = t.tamaño;
     }
+  }
 
-    // Getters
+  public BigDecimal calcularPrecio() {
+    return getPrecio();
+  }
 
-    public TipoTamal getTipo() {
-        return tipo;
-    }
+  public String getTipoProducto() {
+    return "Tamal";
+  }
 
-    public TamanoTamal getTamaño() {
-        return tamaño;
-    }
-
-    // Setters
-
-    public void setTipo(TipoTamal tipo) {
-        this.tipo = tipo;
-    }
-
-    public void setTamaño(TamanoTamal tamaño) {
-        this.tamaño = tamaño;
-    }
-
-    @Override
-    public void actualizarDatos(Producto producto) {
-        if (producto instanceof Tamal) {
-            Tamal tamal = (Tamal) producto;
-            this.tipo = tamal.getTipo();
-            this.tamaño = tamal.getTamaño();
-        }
-    }
-
-    @Override
-    public BigDecimal calcularPrecio() {
-        return getPrecio();
-    }
+  public String getDetalleEspecifico() {
+    return tipo + " · " + tamaño;
+  }
 }

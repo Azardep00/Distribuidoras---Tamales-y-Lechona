@@ -2,50 +2,49 @@ package model;
 
 import java.math.BigDecimal;
 
-public class Lechona extends Producto implements IActualizableProducto{
+public class Lechona extends Producto implements IActualizableProducto {
+  private TamanoLechona tamaño;
+  private int numeroPorciones;
 
-    // Atributos
+  public Lechona(
+      int id, String n, String d, BigDecimal p, int s, boolean e, TamanoLechona z, int por) {
+    super(id, n, d, p, s, e);
+    tamaño = z;
+    numeroPorciones = por;
+  }
 
-    private TamanoLechona tamaño;
-    private int numeroPorciones;
+  public TamanoLechona getTamaño() {
+    return tamaño;
+  }
 
-    // CONSTRUCTOR
+  public void setTamaño(TamanoLechona v) {
+    tamaño = v;
+  }
 
-    public Lechona(int idProducto, String nombre, String descripcion,
-                   BigDecimal precio, int stock, boolean estado, TamanoLechona tamaño,
-                   int numeroPorciones) {
-        super(idProducto, nombre, descripcion, precio, stock, estado);
-        this.tamaño = tamaño;
-        this.numeroPorciones = numeroPorciones;
+  public int getNumeroPorciones() {
+    return numeroPorciones;
+  }
+
+  public void setNumeroPorciones(int v) {
+    numeroPorciones = v;
+  }
+
+  public void actualizarDatos(Producto p) {
+    if (p instanceof Lechona l) {
+      tamaño = l.tamaño;
+      numeroPorciones = l.numeroPorciones;
     }
+  }
 
-    public TamanoLechona getTamaño() {
-        return tamaño;
-    }
+  public BigDecimal calcularPrecio() {
+    return getPrecio();
+  }
 
-    public void setTamaño(TamanoLechona tamaño) {
-        this.tamaño = tamaño;
-    }
+  public String getTipoProducto() {
+    return "Lechona";
+  }
 
-    public int getNumeroPorciones() {
-        return numeroPorciones;
-    }
-
-    public void setNumeroPorciones(int numeroPorciones) {
-        this.numeroPorciones = numeroPorciones;
-    }
-
-    @Override
-    public void actualizarDatos(Producto producto) {
-        if (producto instanceof Lechona) {
-            Lechona lechona = (Lechona) producto;
-            this.tamaño = lechona.getTamaño();
-            this.numeroPorciones = lechona.getNumeroPorciones();
-        }
-    }
-
-    @Override
-    public BigDecimal calcularPrecio() {
-        return getPrecio();
-    }
+  public String getDetalleEspecifico() {
+    return tamaño + " · " + numeroPorciones + " porciones";
+  }
 }

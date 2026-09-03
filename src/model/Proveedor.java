@@ -1,79 +1,69 @@
 package model;
 
 public class Proveedor {
+  private int idProveedor;
+  private String nombre, telefono, correo, direccion;
+  private boolean estado;
 
-    // ATRIBUTOS
+  public Proveedor(int id, String n, String t, String c, String d, boolean e) {
+    idProveedor = id;
+    nombre = n;
+    telefono = t;
+    correo = c;
+    direccion = d;
+    estado = e;
+  }
 
-    private int idProveedor;
-    private String nombre;
-    private String telefono;
-    private String correo;
-    private String direccion;
-    private boolean estado;
+  public int getIdProveedor() {
+    return idProveedor;
+  }
 
+  public void setIdProveedor(int v) {
+    idProveedor = v;
+  }
 
-    // CONSTRUCTOR
+  public String getNombre() {
+    return nombre;
+  }
 
-    public Proveedor(int idProveedor, String nombre, String telefono,
-                     String correo, String direccion, boolean estado ){
+  public void setNombre(String v) {
+    nombre = v;
+  }
 
-        this.idProveedor = idProveedor;
-        this.nombre = nombre;
-        this.telefono = telefono;
-        this.correo = correo;
-        this.direccion = direccion;
-        this.estado = estado;
-    }
+  public String getTelefono() {
+    return telefono;
+  }
 
+  public void setTelefono(String v) {
+    telefono = v;
+  }
 
-    // GETTERS y SETTERS
+  public String getCorreo() {
+    return correo;
+  }
 
-    public int getIdProveedor() {
-        return idProveedor;
-    }
+  public void setCorreo(String v) {
+    correo = v;
+  }
 
-    public void setIdProveedor(int idProveedor) {
-        this.idProveedor = idProveedor;
-    }
+  public String getDireccion() {
+    return direccion;
+  }
 
-    public String getNombre() {
-        return nombre;
-    }
+  public void setDireccion(String v) {
+    direccion = v;
+  }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+  public boolean isEstado() {
+    return estado;
+  }
 
-    public String getTelefono() {
-        return telefono;
-    }
+  public void setEstado(boolean v) {
+    estado = v;
+  }
 
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
-    }
-
-    public String getCorreo() {
-        return correo;
-    }
-
-    public void setCorreo(String correo) {
-        this.correo = correo;
-    }
-
-    public String getDireccion() {
-        return direccion;
-    }
-
-    public void setDireccion(String direccion) {
-        this.direccion = direccion;
-    }
-
-    public boolean isEstado() {
-        return estado;
-    }
-
-    public void setEstado(boolean estado) {
-        this.estado = estado;
-    }
-
+  @Override
+  public String toString() {
+    return nombre;
+  }
 }

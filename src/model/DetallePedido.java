@@ -1,48 +1,37 @@
 package model;
 
-public class DetallePedido
-{
+import java.math.BigDecimal;
 
-    private Producto producto;
-    private int cantidad;
-    private double precioUnitario;
+public class DetallePedido {
+  private final Producto producto;
+  private int cantidad;
+  private final BigDecimal precioUnitario;
 
-    public DetallePedido(Producto producto, int cantidad, double precioUnitario)
-    {
-        if (cantidad <= 0)
-        {
-            throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
-        }
-        this.producto = producto;
-        this.cantidad = cantidad;
-        this.precioUnitario = precioUnitario;
-    }
+  public DetallePedido(Producto p, int c, BigDecimal precio) {
+    if (p == null || c <= 0) throw new IllegalArgumentException("Detalle de pedido inválido.");
+    producto = p;
+    cantidad = c;
+    precioUnitario = precio;
+  }
 
-    public Producto getProducto()
-    {
-        return producto;
-    }
+  public Producto getProducto() {
+    return producto;
+  }
 
-    public int getCantidad()
-    {
-        return cantidad;
-    }
+  public int getCantidad() {
+    return cantidad;
+  }
 
-    public double getPrecioUnitario()
-    {
-        return precioUnitario;
-    }
+  public BigDecimal getPrecioUnitario() {
+    return precioUnitario;
+  }
 
-    public void setCantidad(int cantidad)
-    {
-        if (cantidad <= 0) {
-            throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
-        }
-        this.cantidad = cantidad;
-    }
+  public void setCantidad(int v) {
+    if (v <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor que 0.");
+    cantidad = v;
+  }
 
-    public double calcularSubtotal()
-    {
-        return cantidad * precioUnitario;
-    }
+  public BigDecimal calcularSubtotal() {
+    return precioUnitario.multiply(BigDecimal.valueOf(cantidad));
+  }
 }
