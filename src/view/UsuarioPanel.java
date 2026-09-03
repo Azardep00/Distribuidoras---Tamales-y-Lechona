@@ -3,7 +3,9 @@ package view;
 import controller.UsuarioController;
 
 import java.awt.*;
-import java.time.LocalDate;
+import java.awt.event.*;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -18,10 +20,12 @@ public class UsuarioPanel extends JPanel {
             telefono = new JTextField(14),
             correo = new JTextField(20);
     private final JPasswordField password = new JPasswordField(16);
-    private final JSpinner nacimiento = fecha();
+    private final JButton togglePassword = UI.compactButton("Mostrar");
+    private final JPanel passwordPanel = new JPanel(new BorderLayout(6, 0));
+    private final DatePicker nacimiento = new DatePicker();
     private final JComboBox<TipoCliente> tipoCliente = new JComboBox<>(TipoCliente.values());
     private final JTextField direccion = new JTextField(20), cargo = new JTextField(16);
-    private final JSpinner contratacion = fecha();
+    private final DatePicker contratacion = new DatePicker();
     private final CardLayout cards = new CardLayout();
     private final JPanel specific = new JPanel(cards);
     private final JTextField buscar = new JTextField(18);
@@ -39,8 +43,17 @@ public class UsuarioPanel extends JPanel {
         this.c = c;
         setLayout(new BorderLayout(12, 12));
         setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        nacimiento.setEditor(new JSpinner.DateEditor(nacimiento, "dd/MM/yyyy"));
-        contratacion.setEditor(new JSpinner.DateEditor(contratacion, "dd/MM/yyyy"));
+        passwordPanel.setOpaque(false);
+        passwordPanel.add(password, BorderLayout.CENTER);
+        passwordPanel.add(togglePassword, BorderLayout.EAST);
+        togglePassword.setPreferredSize(new Dimension(100, 40));
+        togglePassword.addActionListener(e -> {
+            boolean visible = password.getEchoChar() == 0;
+            password.setEchoChar(visible ? '\u2022' : 0);
+            togglePassword.setText(visible ? "Mostrar" : "Ocultar");
+            password.requestFocusInWindow();
+        });
+        password.setEchoChar('\u2022');
         JPanel form = UI.card("Usuarios — un único flujo para Cliente y Empleado");
         JPanel f = new JPanel(new GridBagLayout());
         f.setOpaque(false);
@@ -52,7 +65,7 @@ public class UsuarioPanel extends JPanel {
         row(f, g, 2, "Apellido *", apellido);
         row(f, g, 3, "Teléfono *", telefono);
         row(f, g, 4, "Correo *", correo);
-        row(f, g, 5, "Contraseña", password);
+        row(f, g, 5, "Contraseña", passwordPanel);
         row(f, g, 6, "Fecha de nacimiento", nacimiento);
         JPanel cl = new JPanel(new GridLayout(1, 4, 6, 6));
         cl.setOpaque(false);
@@ -121,8 +134,125 @@ public class UsuarioPanel extends JPanel {
         refrescar("");
     }
 
-    private JSpinner fecha() {
-        return new JSpinner(new SpinnerDateModel(new Date(), null, null, Calendar.DAY_OF_MONTH));
+    private static final class DatePicker extends JPanel {
+        private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        private final JTextField text = new JTextField();
+        private final JButton toggle = UI.compactButton("▾");
+        private final JPopupMenu popup = new JPopupMenu();
+        private final JButton[] cells = new JButton[42];
+        private final JLabel title = new JLabel("", SwingConstants.CENTER);
+        private final JButton prev = UI.compactButton("◀");
+        private final JButton next = UI.compactButton("▶");
+        private LocalDate currentMonth = LocalDate.now();
+        private LocalDate selected = LocalDate.now();
+
+        DatePicker() {
+            super(new BorderLayout(6, 0));
+            setOpaque(false);
+            text.setEditable(false);
+            text.setHorizontalAlignment(SwingConstants.CENTER);
+            UI.styleField(text);
+            text.setBackground(Color.WHITE);
+            toggle.setPreferredSize(new Dimension(36, 36));
+            add(text, BorderLayout.CENTER);
+            add(toggle, BorderLayout.EAST);
+            JPanel calendar = new JPanel(new BorderLayout(6, 6));
+            calendar.setBorder(BorderFactory.createLineBorder(UI.LINE));
+            calendar.setBackground(Color.WHITE);
+            JPanel header = new JPanel(new BorderLayout(6, 0));
+            header.setOpaque(false);
+            prev.setPreferredSize(new Dimension(36, 28));
+            next.setPreferredSize(new Dimension(36, 28));
+            header.add(prev, BorderLayout.WEST);
+            header.add(title, BorderLayout.CENTER);
+            header.add(next, BorderLayout.EAST);
+            JPanel days = new JPanel(new GridLayout(0, 7, 4, 4));
+            String[] names = {"D", "L", "M", "M", "J", "V", "S"};
+            for (String n : names) {
+                JLabel d = new JLabel(n, SwingConstants.CENTER);
+                d.setFont(new Font("SansSerif", Font.BOLD, 11));
+                d.setForeground(UI.MUTED);
+                days.add(d);
+            }
+            for (int i = 0; i < cells.length; i++) {
+                JButton cell = new JButton();
+                cell.setFocusPainted(false);
+                cell.setOpaque(true);
+                cell.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+                cell.setBackground(Color.WHITE);
+                cell.setForeground(UI.INK);
+                cell.addActionListener(e -> {
+                    LocalDate picked = (LocalDate) ((JButton) e.getSource()).getClientProperty("day");
+                    if (picked == null) return;
+                    selected = picked;
+                    text.setText(selected.format(FORMATTER));
+                    popup.setVisible(false);
+                    renderCalendar();
+                });
+                cells[i] = cell;
+                days.add(cell);
+            }
+            calendar.add(header, BorderLayout.NORTH);
+            calendar.add(days, BorderLayout.CENTER);
+            popup.add(calendar);
+            prev.addActionListener(e -> {
+                currentMonth = currentMonth.minusMonths(1);
+                renderCalendar();
+            });
+            next.addActionListener(e -> {
+                currentMonth = currentMonth.plusMonths(1);
+                renderCalendar();
+            });
+            toggle.addActionListener(e -> {
+                if (popup.isVisible()) {
+                    popup.setVisible(false);
+                } else {
+                    currentMonth = selected.withDayOfMonth(1);
+                    renderCalendar();
+                    popup.show(DatePicker.this, 0, getHeight());
+                }
+            });
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (SwingUtilities.isLeftMouseButton(e) && !popup.isVisible()) {
+                        currentMonth = selected.withDayOfMonth(1);
+                        renderCalendar();
+                        popup.show(DatePicker.this, 0, getHeight());
+                    }
+                }
+            });
+            renderCalendar();
+        }
+
+        public void setValue(Date date) {
+            selected = date == null ? LocalDate.now() : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            currentMonth = selected.withDayOfMonth(1);
+            renderCalendar();
+        }
+
+        public Date getValue() {
+            return Date.from(selected.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+
+        private void renderCalendar() {
+            title.setText(currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", new Locale("es", "ES"))));
+            LocalDate first = currentMonth.withDayOfMonth(1);
+            int offset = (first.getDayOfWeek().getValue() % 7);
+            for (int i = 0; i < cells.length; i++) {
+                LocalDate day = first.plusDays(i - offset);
+                JButton cell = cells[i];
+                cell.setText(String.valueOf(day.getDayOfMonth()));
+                cell.setEnabled(day.getMonth().equals(currentMonth.getMonth()));
+                boolean isSelected = day.equals(selected);
+                cell.setBackground(isSelected ? new Color(30, 30, 30) : (day.getMonth().equals(currentMonth.getMonth()) ? Color.WHITE : new Color(245, 245, 245)));
+                cell.setForeground(isSelected ? Color.WHITE : (day.getMonth().equals(currentMonth.getMonth()) ? UI.INK : new Color(160, 160, 165)));
+                cell.setFont(new Font("SansSerif", Font.PLAIN, 12));
+                cell.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+                cell.putClientProperty("day", day);
+            }
+            text.setText(selected.format(FORMATTER));
+        }
     }
 
     private void row(JPanel p, GridBagConstraints g, int y, String l, JComponent x) {
@@ -137,8 +267,9 @@ public class UsuarioPanel extends JPanel {
         g.gridwidth = 1;
     }
 
-    private LocalDate ld(JSpinner s) {
-        return ((Date) s.getValue()).toInstant().atZone(TimeZone.getDefault().toZoneId()).toLocalDate();
+    private LocalDate ld(DatePicker s) {
+        Date v = s.getValue();
+        return v == null ? null : v.toInstant().atZone(TimeZone.getDefault().toZoneId()).toLocalDate();
     }
 
     private Usuario construir(int id) {
@@ -239,9 +370,8 @@ public class UsuarioPanel extends JPanel {
         telefono.setText(u.getTelefono());
         correo.setText(u.getCorreo());
         if (u.getFechaNacimiento() != null)
-            nacimiento.setValue(
-                    Date.from(
-                            u.getFechaNacimiento().atStartOfDay(TimeZone.getDefault().toZoneId()).toInstant()));
+           nacimiento.setValue(Date.from(
+                   u.getFechaNacimiento().atStartOfDay(TimeZone.getDefault().toZoneId()).toInstant()));
         if (u instanceof Cliente x) {
             tipo.setSelectedItem("Cliente");
             tipoCliente.setSelectedItem(x.getTipoCliente());
@@ -262,6 +392,10 @@ public class UsuarioPanel extends JPanel {
         telefono.setText("");
         correo.setText("");
         password.setText("");
+        password.setEchoChar('\u2022');
+        togglePassword.setText("Mostrar");
+        nacimiento.setValue(new Date());
+        contratacion.setValue(new Date());
         direccion.setText("");
         cargo.setText("");
         table.clearSelection();
