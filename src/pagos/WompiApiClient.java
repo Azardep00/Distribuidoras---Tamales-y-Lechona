@@ -1,42 +1,51 @@
 package pagos;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import org.json.JSONObject;
 
+import java.net.URI;
+import java.net.http.*;
+
+/** Cliente Wompi sin secretos dentro del código fuente. Usa WOMPI_PRIVATE_KEY. */
 public class WompiApiClient {
 
-    private static final String LLAVE_PRIVADA = "prv_test_KX9g0vmoEQvTE2zYk7vBs0wSFmcILo9I";
-    private static final String URL_BASE = "https://sandbox.wompi.co/v1/payment_links";
+    private static final String URL = "https://sandbox.wompi.co/v1/payment_links";
     private final HttpClient client = HttpClient.newHttpClient();
 
-    public JSONObject crearLinkDePago(String nombre, String descripcion, long montoEnCentavos) {
-        try {
-            JSONObject cuerpo = new JSONObject();
-            cuerpo.put("name", nombre);
-            cuerpo.put("description", descripcion);
-            cuerpo.put("single_use", true);
-            cuerpo.put("collect_shipping", false);
-            cuerpo.put("currency", "COP");
-            cuerpo.put("amount_in_cents", montoEnCentavos);
+    public JSONObject crearLinkDePago(String nombre, String descripcion, long cents) {
+        String key = System.getenv("WOMPI_PRIVATE_KEY");
+        if (key == null || key.isBlank()) {
+            throw new IllegalStateException("Falta la variable de entorno WOMPI_PRIVATE_KEY (llave sandbox de Wompi).");
+        }
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(URL_BASE))
+        try {
+            JSONObject body = new JSONObject();
+            body.put("name", nombre);
+            body.put("description", descripcion);
+            body.put("single_use", true);
+            body.put("collect_shipping", false);
+            body.put("currency", "COP");
+            body.put("amount_in_cents", cents);
+
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(URL))
                     .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + LLAVE_PRIVADA)
-                    .POST(HttpRequest.BodyPublishers.ofString(cuerpo.toString()))
+                    .header("Authorization", "Bearer " + key)
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> res = client.send(req, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println("Respuesta Wompi: " + response.body());
-            return new JSONObject(response.body());
+            if (res.statusCode() < 200 || res.statusCode() >= 300) {
+                throw new IllegalStateException("Wompi respondió HTTP " + res.statusCode() + ": " + res.body());
+            }
 
+            return new JSONObject(res.body());
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("La solicitud a Wompi fue interrumpida.", e);
         } catch (Exception e) {
-            System.out.println("Error al conectar con Wompi: " + e.getMessage());
-            return null;
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 }

@@ -6,24 +6,24 @@ public class Lechona extends Producto implements IActualizableProducto{
 
     // Atributos
 
-    private TamañoLechona tamaño;
+    private TamanoLechona tamaño;
     private int numeroPorciones;
 
     // CONSTRUCTOR
 
     public Lechona(int idProducto, String nombre, String descripcion,
-                   BigDecimal precio, int stock, boolean estado, TamañoLechona tamaño,
+                   BigDecimal precio, int stock, boolean estado, TamanoLechona tamaño,
                    int numeroPorciones) {
         super(idProducto, nombre, descripcion, precio, stock, estado);
         this.tamaño = tamaño;
         this.numeroPorciones = numeroPorciones;
     }
 
-    public TamañoLechona getTamaño() {
+    public TamanoLechona getTamaño() {
         return tamaño;
     }
 
-    public void setTamaño(TamañoLechona tamaño) {
+    public void setTamaño(TamanoLechona tamaño) {
         this.tamaño = tamaño;
     }
 

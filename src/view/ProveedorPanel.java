@@ -8,173 +8,100 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Vista gráfica del CRUD de Proveedor.
- * Reutiliza EXACTAMENTE la misma lógica que el menú 1 (PROVEEDOR) de Main.java,
- * solo que en vez de leer con Scanner y mostrar con System.out, usa
- * JTextField/JTable. El controller y el modelo no se tocan.
- */
+/** Gestión de proveedores. El ID es interno: solo se muestra/usa al editar o eliminar. */
 public class ProveedorPanel extends JPanel {
-
-    private final ProveedorController proveedorController;
-
-    private final DefaultTableModel modeloTabla;
+    private final ProveedorController controller;
+    private final DefaultTableModel modelo;
     private final JTable tabla;
+    private final JTextField txtNombre = new JTextField(18);
+    private final JTextField txtTelefono = new JTextField(14);
+    private final JTextField txtCorreo = new JTextField(20);
+    private final JTextField txtDireccion = new JTextField(20);
+    private Integer proveedorSeleccionado;
 
-    private final JTextField txtId = new JTextField(5);
-    private final JTextField txtNombre = new JTextField(15);
-    private final JTextField txtTelefono = new JTextField(10);
-    private final JTextField txtCorreo = new JTextField(15);
-    private final JTextField txtDireccion = new JTextField(15);
+    public ProveedorPanel(ProveedorController controller) {
+        this.controller = controller;
+        setLayout(new BorderLayout(12,12));
+        setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 
-    public ProveedorPanel(ProveedorController proveedorController) {
-        this.proveedorController = proveedorController;
-        setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // ----- Formulario (equivalente a lo que pedía el Scanner) -----
         JPanel formulario = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(4, 4, 4, 4);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(4,4,4,4); g.fill = GridBagConstraints.HORIZONTAL;
+        g.gridx=0; g.gridy=0; formulario.add(new JLabel("Nombre / empresa:*"),g); g.gridx=1; formulario.add(txtNombre,g);
+        g.gridx=0; g.gridy=1; formulario.add(new JLabel("Teléfono:*"),g); g.gridx=1; formulario.add(txtTelefono,g);
+        g.gridx=0; g.gridy=2; formulario.add(new JLabel("Correo:"),g); g.gridx=1; formulario.add(txtCorreo,g);
+        g.gridx=0; g.gridy=3; formulario.add(new JLabel("Dirección:"),g); g.gridx=1; formulario.add(txtDireccion,g);
 
-        int fila = 0;
-        agregarCampo(formulario, gbc, fila++, "ID (para actualizar/eliminar):", txtId);
-        agregarCampo(formulario, gbc, fila++, "Nombre:", txtNombre);
-        agregarCampo(formulario, gbc, fila++, "Teléfono:", txtTelefono);
-        agregarCampo(formulario, gbc, fila++, "Correo:", txtCorreo);
-        agregarCampo(formulario, gbc, fila++, "Dirección:", txtDireccion);
+        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton registrar = new JButton("Registrar proveedor");
+        JButton editar = new JButton("Guardar cambios");
+        JButton eliminar = new JButton("Eliminar");
+        JButton consultar = new JButton("Consultar proveedores");
+        JButton limpiar = new JButton("Limpiar");
+        acciones.add(registrar); acciones.add(consultar); acciones.add(editar); acciones.add(eliminar); acciones.add(limpiar);
 
-        // ----- Botones = opciones del menú (1. Registrar 2. Consultar 3. Actualizar 4. Eliminar) -----
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnRegistrar = new JButton("1. Registrar proveedor");
-        JButton btnConsultar = new JButton("2. Consultar proveedores");
-        JButton btnActualizar = new JButton("3. Actualizar proveedor");
-        JButton btnEliminar = new JButton("4. Eliminar proveedor");
-        botones.add(btnRegistrar);
-        botones.add(btnConsultar);
-        botones.add(btnActualizar);
-        botones.add(btnEliminar);
-
-        JPanel norte = new JPanel(new BorderLayout());
-        norte.add(formulario, BorderLayout.NORTH);
-        norte.add(botones, BorderLayout.SOUTH);
+        JPanel norte = new JPanel(new BorderLayout(8,8));
+        norte.setBorder(BorderFactory.createTitledBorder("Datos del proveedor"));
+        norte.add(formulario, BorderLayout.CENTER); norte.add(acciones, BorderLayout.SOUTH);
         add(norte, BorderLayout.NORTH);
 
-        // ----- Tabla = ProveedorView.mostrarProveedores(...) -----
-        modeloTabla = new DefaultTableModel(
-                new Object[]{"ID", "Nombre", "Teléfono", "Correo", "Dirección", "Estado"}, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+        modelo = new DefaultTableModel(new Object[]{"ID","Proveedor","Teléfono","Correo","Dirección","Estado"},0){
+            public boolean isCellEditable(int r,int c){return false;}
         };
-        tabla = new JTable(modeloTabla);
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
+        tabla = new JTable(modelo); tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); tabla.setRowHeight(25);
+        add(new JScrollPane(tabla),BorderLayout.CENTER);
 
-        // ----- Acciones: llaman al mismo controller que usaba Main -----
-
-        btnRegistrar.addActionListener(e -> {
-            // Igual que "opcion == 1" en menuProveedor(...)
-            String nombre = txtNombre.getText();
-            String telefono = txtTelefono.getText();
-            String correo = txtCorreo.getText();
-            String direccion = txtDireccion.getText();
-
-            Proveedor proveedor = new Proveedor(0, nombre, telefono, correo, direccion, true);
-            proveedorController.registrarProveedor(proveedor);
-
-            JOptionPane.showMessageDialog(this, "Proveedor registrado correctamente.");
-            limpiarCampos();
-            refrescarTabla();
-        });
-
-        btnConsultar.addActionListener(e -> refrescarTabla());
-
-        btnActualizar.addActionListener(e -> {
-            // Igual que "opcion == 3"
-            Integer id = leerId();
-            if (id == null) return;
-
-            boolean actualizado = proveedorController.actualizarProveedor(
-                    id, txtNombre.getText(), txtTelefono.getText(),
-                    txtCorreo.getText(), txtDireccion.getText());
-
-            if (actualizado) {
-                JOptionPane.showMessageDialog(this, "Proveedor actualizado correctamente.");
-            } else {
-                JOptionPane.showMessageDialog(this, "No se encontro un proveedor con ese ID.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
-            }
-            refrescarTabla();
-        });
-
-        btnEliminar.addActionListener(e -> {
-            // Igual que "opcion == 4"
-            Integer id = leerId();
-            if (id == null) return;
-
-            boolean eliminado = proveedorController.eliminarProveedor(id);
-
-            if (eliminado) {
-                JOptionPane.showMessageDialog(this, "Proveedor eliminado correctamente.");
-            } else {
-                JOptionPane.showMessageDialog(this, "No se encontro un proveedor con ese ID.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
-            }
-            refrescarTabla();
-        });
-
-        // Al hacer click en una fila de la tabla, se cargan sus datos en el formulario
-        tabla.getSelectionModel().addListSelectionListener(e -> {
-            int fila2 = tabla.getSelectedRow();
-            if (fila2 >= 0) {
-                txtId.setText(modeloTabla.getValueAt(fila2, 0).toString());
-                txtNombre.setText(modeloTabla.getValueAt(fila2, 1).toString());
-                txtTelefono.setText(modeloTabla.getValueAt(fila2, 2).toString());
-                txtCorreo.setText(modeloTabla.getValueAt(fila2, 3).toString());
-                txtDireccion.setText(modeloTabla.getValueAt(fila2, 4).toString());
-            }
-        });
-
+        registrar.addActionListener(e -> registrar());
+        consultar.addActionListener(e -> mostrarConsulta());
+        editar.addActionListener(e -> editar());
+        eliminar.addActionListener(e -> eliminar());
+        limpiar.addActionListener(e -> limpiar());
+        tabla.getSelectionModel().addListSelectionListener(e -> cargarSeleccion());
         refrescarTabla();
     }
 
-    private void agregarCampo(JPanel panel, GridBagConstraints gbc, int fila, String etiqueta, JTextField campo) {
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        panel.add(new JLabel(etiqueta), gbc);
-        gbc.gridx = 1;
-        panel.add(campo, gbc);
+    private void registrar(){
+        if(!validarBasico()) return;
+        controller.registrarProveedor(new Proveedor(0,txtNombre.getText().trim(),txtTelefono.getText().trim(),
+                txtCorreo.getText().trim(),txtDireccion.getText().trim(),true));
+        mensaje("Proveedor registrado correctamente."); limpiar(); refrescarTabla();
     }
-
-    private Integer leerId() {
-        try {
-            return Integer.parseInt(txtId.getText().trim());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID numérico válido.",
-                    "Entrada inválida", JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
+    private void editar(){
+        if(proveedorSeleccionado==null){ aviso("Selecciona un proveedor de la tabla para editar."); return; }
+        if(!validarBasico()) return;
+        if(controller.actualizarProveedor(proveedorSeleccionado,txtNombre.getText().trim(),txtTelefono.getText().trim(),
+                txtCorreo.getText().trim(),txtDireccion.getText().trim())){ mensaje("Cambios guardados."); refrescarTabla(); }
     }
-
-    private void limpiarCampos() {
-        txtId.setText("");
-        txtNombre.setText("");
-        txtTelefono.setText("");
-        txtCorreo.setText("");
-        txtDireccion.setText("");
+    private void eliminar(){
+        if(proveedorSeleccionado==null){ aviso("Selecciona un proveedor de la tabla para eliminar."); return; }
+        int r=JOptionPane.showConfirmDialog(this,"¿Eliminar el proveedor seleccionado?","Confirmar",JOptionPane.YES_NO_OPTION);
+        if(r==JOptionPane.YES_OPTION){ controller.eliminarProveedor(proveedorSeleccionado); mensaje("Proveedor eliminado."); limpiar(); refrescarTabla(); }
     }
-
-    /** Refresca la tabla leyendo la lista actual del controller (igual que ProveedorView). */
-    public void refrescarTabla() {
-        modeloTabla.setRowCount(0);
-        List<Proveedor> proveedores = proveedorController.listarProveedores();
-        for (Proveedor p : proveedores) {
-            modeloTabla.addRow(new Object[]{
-                    p.getIdProveedor(), p.getNombre(), p.getTelefono(),
-                    p.getCorreo(), p.getDireccion(), p.isEstado() ? "Activo" : "Inactivo"
-            });
-        }
+    private boolean validarBasico(){
+        if(txtNombre.getText().trim().isEmpty() || txtTelefono.getText().trim().isEmpty()){
+            aviso("Nombre y teléfono son obligatorios."); return false;
+        } return true;
+    }
+    private void cargarSeleccion(){
+        int row=tabla.getSelectedRow(); if(row<0) return;
+        proveedorSeleccionado=(Integer)modelo.getValueAt(row,0);
+        Proveedor p=controller.buscarProveedor(proveedorSeleccionado); if(p==null)return;
+        txtNombre.setText(p.getNombre()); txtTelefono.setText(p.getTelefono()); txtCorreo.setText(p.getCorreo()); txtDireccion.setText(p.getDireccion());
+    }
+    private void limpiar(){proveedorSeleccionado=null; txtNombre.setText("");txtTelefono.setText("");txtCorreo.setText("");txtDireccion.setText("");tabla.clearSelection();}
+    private void mensaje(String s){JOptionPane.showMessageDialog(this,s,"Proveedores",JOptionPane.INFORMATION_MESSAGE);}
+    private void aviso(String s){JOptionPane.showMessageDialog(this,s,"Revisa los datos",JOptionPane.WARNING_MESSAGE);}
+    public void refrescarTabla(){
+        modelo.setRowCount(0); List<Proveedor> ps=controller.listarProveedores();
+        for(Proveedor p:ps) modelo.addRow(new Object[]{p.getIdProveedor(),p.getNombre(),p.getTelefono(),p.getCorreo(),p.getDireccion(),p.isEstado()?"Activo":"Inactivo"});
+    }
+    /** Vista separada de consulta: no obliga a mezclar la consulta con el formulario. */
+    public void mostrarConsulta(){
+        JDialog d=new JDialog(SwingUtilities.getWindowAncestor(this),"Proveedores registrados",Dialog.ModalityType.APPLICATION_MODAL);
+        JTable t=new JTable(new DefaultTableModel(new Object[]{"ID","Proveedor","Teléfono","Correo","Dirección"},0){public boolean isCellEditable(int r,int c){return false;}});
+        DefaultTableModel m=(DefaultTableModel)t.getModel(); List<Proveedor> ps=controller.listarProveedores();
+        if(ps.isEmpty()) m.addRow(new Object[]{"-","No hay proveedores registrados","","",""});
+        else for(Proveedor p:ps)m.addRow(new Object[]{p.getIdProveedor(),p.getNombre(),p.getTelefono(),p.getCorreo(),p.getDireccion()});
+        d.add(new JScrollPane(t)); d.setSize(700,350); d.setLocationRelativeTo(this); d.setVisible(true);
     }
 }
