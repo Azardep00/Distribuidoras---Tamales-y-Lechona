@@ -14,15 +14,7 @@ import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/**
- * Vista gráfica de Pedido. Replica el menú 5 (PEDIDO) de Main.java
- * (listar / actualizar / eliminar), y además reproduce cómo se crea un
- * pedido: en Main.java un pedido solo nace a través de
- * Cliente.realizarPedido(...) (ver Main.probarPagoWompi()), así que aquí
- * se elige un cliente ya registrado en Usuario y se usa ese mismo método.
- * También se deja el botón "Probar pago (Adapter Wompi)" con la misma
- * lógica del menú principal (opción 6).
- */
+
 public class PedidoPanel extends JPanel {
 
     private static final DateTimeFormatter FORMATO_FECHA =
@@ -33,7 +25,7 @@ public class PedidoPanel extends JPanel {
     private final DefaultTableModel modeloTabla;
     private final JTable tabla;
 
-    // ----- Crear pedido (Cliente.realizarPedido) -----
+    // ----- Crear pedido -----
     private final JComboBox<Cliente> comboCliente = new JComboBox<>();
     private final JTextField txtIdPedido = new JTextField(5);
     private final JComboBox<MetodoPago> comboMetodoPagoNuevo = new JComboBox<>(MetodoPago.values());
@@ -65,7 +57,7 @@ public class PedidoPanel extends JPanel {
 
         // ----- Panel: crear pedido -----
         JPanel panelCrear = new JPanel(new GridBagLayout());
-        panelCrear.setBorder(BorderFactory.createTitledBorder("Crear pedido (Cliente.realizarPedido)"));
+        panelCrear.setBorder(BorderFactory.createTitledBorder("Crear pedido"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(4, 4, 4, 4);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -149,23 +141,30 @@ public class PedidoPanel extends JPanel {
             String direccion = txtDireccionNueva.getText().isBlank()
                     ? cliente.getDireccion() : txtDireccionNueva.getText();
 
-            // Exactamente igual que en Main: el pedido nace del cliente...
-            Pedido pedido = cliente.realizarPedido(idPedido, metodoPago, direccion);
+            Pedido pedido;
 
-            // ...y luego se registra en PedidoController para poder listarlo/editarlo aquí.
             try {
-                PedidoController.agregarPedido(pedido);
-                JOptionPane.showMessageDialog(this, "Pedido creado para el cliente: " + cliente.getNombre());
+                pedido = PedidoController.crearPedido(idPedido, metodoPago, direccion);
+                cliente.agregarPedido(pedido);
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Pedido creado para el cliente: " + cliente.getNombre()
+                );
+
             } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(this, "Aviso: " + ex.getMessage(),
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Aviso: " + ex.getMessage(),
+                        "Aviso",
+                        JOptionPane.WARNING_MESSAGE
+                );
             }
 
             refrescarTabla();
         });
 
         btnPagarWompi.addActionListener(e -> {
-            // Igual que Main.probarPagoWompi(), pero sobre el pedido seleccionado en la tabla
             int fila3 = tabla.getSelectedRow();
             if (fila3 < 0) {
                 JOptionPane.showMessageDialog(this, "Seleccione un pedido de la tabla primero.",
@@ -175,7 +174,17 @@ public class PedidoPanel extends JPanel {
             int idPedido = (int) modeloTabla.getValueAt(fila3, 0);
 
             ProcesadorPago procesador = new AdaptadorPagoWompi();
-            String linkDePago = procesador.procesarPago(50000, "PED-" + idPedido);
+            Pedido pedido = PedidoController.buscarPedido(idPedido);
+
+            if (pedido == null) {
+                JOptionPane.showMessageDialog(this, "No se encontró el pedido.");
+                return;
+            }
+
+            String linkDePago = procesador.procesarPago(
+                    pedido.getTotal(),
+                    "PED-" + idPedido
+            );
 
             if (linkDePago != null) {
                 JOptionPane.showMessageDialog(this, "Envíale este link al cliente para pagar:\n" + linkDePago);

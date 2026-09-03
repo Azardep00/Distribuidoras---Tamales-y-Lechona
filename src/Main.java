@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 
 /**
  * Ventana principal de la interfaz gráfica.
- *
  * Es el equivalente visual de Main.java: crea exactamente los mismos
  * controllers, siembra los mismos productos de ejemplo (tamales y lechonas)
  * y organiza cada "menú" de la consola (PROVEEDOR, MOVIMIENTO INVENTARIO,
@@ -26,7 +25,6 @@ public class Main extends JFrame {
     public Main() {
         super("Distribuidora de Tamales y Lechona");
 
-        // Singleton, igual que en Main.java
         Distribuidora distribuidora = Distribuidora.getInstancia();
         setTitle(distribuidora.getNombre());
 
@@ -38,7 +36,7 @@ public class Main extends JFrame {
 
         sembrarProductos();
 
-        // ----- Pestañas: una por cada CRUD/menú del Main original -----
+        // ----- Pestañas: una por cada módulo -----
         ProveedorPanel proveedorPanel = new ProveedorPanel(proveedorController);
         MovimientoInventarioPanel movimientoPanel =
                 new MovimientoInventarioPanel(movimientoController, proveedorController);
@@ -86,7 +84,6 @@ public class Main extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    /** Exactamente los mismos productos que Main.java registraba al arrancar. */
     private void sembrarProductos() {
         ProductoController.agregarProducto(new Tamal(
                 1, "Tamal Normal Grande", "Tamal tradicional tamaño grande",

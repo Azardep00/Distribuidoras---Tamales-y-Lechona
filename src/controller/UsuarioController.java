@@ -29,7 +29,7 @@ public class UsuarioController {
 
     // ---- READ ----
     public List<Usuario> listarUsuarios() {
-        return usuarios;
+        return new ArrayList<>(usuarios);
     }
 
     public Optional<Usuario> buscarPorId(int idUsuario) {
