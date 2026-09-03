@@ -11,7 +11,7 @@ public abstract class Usuario {
   private LocalDate fechaNacimiento;
 
   protected Usuario(
-      int id, String n, String a, String t, String c, String p, boolean e, LocalDate f) {
+          int id, String n, String a, String t, String c, String p, boolean e, LocalDate f) {
     idUsuario = id;
     nombre = n;
     apellido = a;
@@ -24,8 +24,8 @@ public abstract class Usuario {
 
   public boolean iniciarSesion(String correo, String contrasena) {
     return estado
-        && this.correo.equalsIgnoreCase(correo)
-        && this.contrasena.equals(hashPassword(contrasena == null ? "" : contrasena));
+            && this.correo.equalsIgnoreCase(correo)
+            && this.contrasena.equals(hashPassword(contrasena == null ? "" : contrasena));
   }
 
   public void cerrarSesion() {
