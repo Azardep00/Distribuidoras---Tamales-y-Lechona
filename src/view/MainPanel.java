@@ -43,16 +43,9 @@ public class MainPanel extends JPanel {
                 BorderFactory.createEmptyBorder(10, 12, 10, 12)));
 
         JLabel logo = new JLabel();
-        java.net.URL resource = getClass().getResource("/assets/logo.png");
-        ImageIcon icon = resource == null ? null : new ImageIcon(resource);
-        if (icon == null) {
-            java.io.File local = new java.io.File("src/main/resources/assets/logo.png");
-            if (!local.exists()) local = new java.io.File("src/assets/logo.png");
-            if (local.exists()) icon = new ImageIcon(local.getAbsolutePath());
-        }
+        ImageIcon icon = UI.logoIcon(58, 58);
         if (icon != null) {
-            Image scaled = icon.getImage().getScaledInstance(58, 58, Image.SCALE_SMOOTH);
-            logo.setIcon(new ImageIcon(scaled));
+            logo.setIcon(icon);
         }
         logo.setPreferredSize(new Dimension(62, 58));
         bar.add(logo, BorderLayout.WEST);
