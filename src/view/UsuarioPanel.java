@@ -164,9 +164,11 @@ public class UsuarioPanel extends JPanel {
             for (int i = 0; i < 12; i++) {
                 monthNames[i] = Month.of(i + 1).getDisplayName(java.time.format.TextStyle.FULL, new Locale("es", "ES"));
             }
-            Integer[] years = new Integer[111];
-            int cy = LocalDate.now().getYear();
-            for (int i = 0; i < years.length; i++) years[i] = cy - 100 + i;
+            int maxYear = 2026;
+                        int minYear = LocalDate.now().getYear() - 100;
+                        int size = Math.max(1, maxYear - minYear + 1);
+                        Integer[] years = new Integer[size];
+                        for (int i = 0; i < years.length; i++) years[i] = minYear + i;
             monthCombo = new JComboBox<>(monthNames);
             yearCombo = new JComboBox<>(years);
             monthCombo.setFocusable(false);
