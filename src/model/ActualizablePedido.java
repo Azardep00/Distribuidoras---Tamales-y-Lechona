@@ -1,6 +1,5 @@
 package model;
 
-public interface ActualizablePedido
-{
-    void actualizarPedido(Pedido pedido);
+public interface ActualizablePedido {
+  void actualizarPedido(Pedido pedido);
 }

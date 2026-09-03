@@ -4,95 +4,78 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
 public class Cliente extends Usuario implements IActualizableUsuario {
+  private int idCliente;
+  private TipoCliente tipoCliente;
+  private String direccion;
+  private LocalDate fechaRegistro;
+  private final List<Pedido> pedidos = new ArrayList<>();
 
-    private int idCliente;
-    private TipoCliente tipoCliente;
-    private String direccion;
-    private LocalDate fechaRegistro;
+  public Cliente(
+      int id,
+      String n,
+      String a,
+      String t,
+      String c,
+      String p,
+      boolean e,
+      LocalDate fn,
+      int idc,
+      TipoCliente tc,
+      String d,
+      LocalDate fr) {
+    super(id, n, a, t, c, p, e, fn);
+    idCliente = idc;
+    tipoCliente = tc;
+    direccion = d;
+    fechaRegistro = fr;
+  }
 
-    // Un cliente puede tener muchos pedidos (0..*)
-    private List<Pedido> pedidos;
+  public int getIdCliente() {
+    return idCliente;
+  }
 
-    public Cliente(int idUsuario, String nombre, String apellido, String telefono,
-                   String correo, String contrasena, boolean estado, LocalDate fechaNacimiento,
-                   int idCliente, TipoCliente tipoCliente, String direccion, LocalDate fechaRegistro) {
-        super(idUsuario, nombre, apellido, telefono, correo, contrasena, estado, fechaNacimiento);
-        this.idCliente = idCliente;
-        this.tipoCliente = tipoCliente;
-        this.direccion = direccion;
-        this.fechaRegistro = fechaRegistro;
-        this.pedidos = new ArrayList<>();
+  public void setIdCliente(int v) {
+    idCliente = v;
+  }
+
+  public TipoCliente getTipoCliente() {
+    return tipoCliente;
+  }
+
+  public void setTipoCliente(TipoCliente v) {
+    tipoCliente = v;
+  }
+
+  public String getDireccion() {
+    return direccion;
+  }
+
+  public void setDireccion(String v) {
+    direccion = v;
+  }
+
+  public LocalDate getFechaRegistro() {
+    return fechaRegistro;
+  }
+
+  public void setFechaRegistro(LocalDate v) {
+    fechaRegistro = v;
+  }
+
+  public List<Pedido> getPedidos() {
+    return new ArrayList<>(pedidos);
+  }
+
+  public void agregarPedido(Pedido p) {
+    if (p != null && !pedidos.contains(p)) pedidos.add(p);
+  }
+
+  public void actualizarDatos(Usuario u) {
+    if (u instanceof Cliente c) {
+      tipoCliente = c.tipoCliente;
+      direccion = c.direccion;
+      fechaRegistro = c.fechaRegistro;
     }
-
-    // ---- Getters y Setters ----
-    public int getIdCliente() {
-        return idCliente;
-    }
-
-    public void setIdCliente(int idCliente) {
-        this.idCliente = idCliente;
-    }
-
-    public TipoCliente getTipoCliente() {
-        return tipoCliente;
-    }
-
-    public void setTipoCliente(TipoCliente tipoCliente) {
-        this.tipoCliente = tipoCliente;
-    }
-
-    public String getDireccion() {
-        return direccion;
-    }
-
-    public void setDireccion(String direccion) {
-        this.direccion = direccion;
-    }
-
-    public LocalDate getFechaRegistro() {
-        return fechaRegistro;
-    }
-
-    public void setFechaRegistro(LocalDate fechaRegistro) {
-        this.fechaRegistro = fechaRegistro;
-    }
-
-    public List<Pedido> getPedidos() {
-        return pedidos;
-    }
-
-
-    // Metodos
-
-    public void agregarPedido(Pedido pedido) {
-        if (pedido != null) {
-            pedidos.add(pedido);
-        }
-    }
-
-    /**
-     * Implementacion de IActualizableUsuario: actualiza los datos propios de Cliente
-     * (los datos comunes de Usuario ya los actualiza Usuario.actualizarDatos()).
-     */
-    @Override
-    public void actualizarDatos(Usuario usuarioConNuevosDatos) {
-        if (usuarioConNuevosDatos instanceof Cliente) {
-            Cliente clienteNuevo = (Cliente) usuarioConNuevosDatos;
-            this.tipoCliente = clienteNuevo.getTipoCliente();
-            this.direccion = clienteNuevo.getDireccion();
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "Cliente{" +
-                "idCliente=" + idCliente +
-                ", tipoCliente=" + tipoCliente +
-                ", direccion='" + direccion + '\'' +
-                ", fechaRegistro=" + fechaRegistro +
-                "} " + super.toString();
-    }
+  }
 }

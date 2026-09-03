@@ -1,100 +1,67 @@
 package controller;
 
-import model.IActualizableProducto;
-import model.Producto;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import model.*;
+import repository.*;
 
 public class ProductoController {
+  private final IProductoRepository repo;
+  private int siguienteId = 1;
 
-    private static final List<Producto> productos = new ArrayList<>();
-    private static int siguienteId = 1;
+  public ProductoController(IProductoRepository repo) {
+    this.repo = repo;
+  }
 
-    public static void agregarProducto(Producto producto) {
-        if (producto == null) {
-            throw new IllegalArgumentException("El producto no puede ser nulo.");
-        }
+  public void registrar(Producto p) {
+    validar(p);
+    p.setIdProducto(siguienteId++);
+    repo.guardar(p);
+  }
 
-        if (producto.getIdProducto() <= 0) {
-            producto.setIdProducto(siguienteId++);
-        } else {
-            if (existeId(producto.getIdProducto())) {
-                throw new IllegalArgumentException("Ya existe un producto con ese ID.");
-            }
-            siguienteId = Math.max(siguienteId, producto.getIdProducto() + 1);
-        }
+  public List<Producto> listar(boolean incluirInactivos) {
+    return repo.listarTodos().stream().filter(p -> incluirInactivos || p.isEstado()).toList();
+  }
 
-        validar(producto);
-        productos.add(producto);
+  public Producto buscarPorId(int id) {
+    return repo.buscarPorId(id).orElse(null);
+  }
+
+  public List<Producto> buscarPorNombre(String texto) {
+    String q = texto == null ? "" : texto.trim().toLowerCase();
+    return listar(false).stream().filter(p -> p.getNombre().toLowerCase().contains(q)).toList();
+  }
+
+  public void actualizar(Producto nuevo) {
+    if (nuevo == null || nuevo.getIdProducto() <= 0)
+      throw new IllegalArgumentException("Producto inválido.");
+    validar(nuevo);
+    Producto actual = buscarPorId(nuevo.getIdProducto());
+    if (actual == null) throw new IllegalArgumentException("Producto no encontrado.");
+    if (!actual.getClass().equals(nuevo.getClass()))
+      throw new IllegalArgumentException("No puedes cambiar el tipo de producto; crea uno nuevo.");
+    actual.setNombre(nuevo.getNombre());
+    actual.setDescripcion(nuevo.getDescripcion());
+    actual.setPrecio(nuevo.getPrecio());
+    if (nuevo instanceof Tamal t && actual instanceof Tamal a) {
+      a.setTipo(t.getTipo());
+      a.setTamaño(t.getTamaño());
     }
-
-    public static List<Producto> listarProductos() {
-        return new ArrayList<>(productos);
+    if (nuevo instanceof Lechona l && actual instanceof Lechona a) {
+      a.setTamaño(l.getTamaño());
+      a.setNumeroPorciones(l.getNumeroPorciones());
     }
+  }
 
-    private static boolean existeId(int id) {
-        return productos.stream().anyMatch(p -> p.getIdProducto() == id);
-    }
+  public void desactivar(int id) {
+    if (buscarPorId(id) == null) throw new IllegalArgumentException("Producto no encontrado.");
+    repo.desactivar(id);
+  }
 
-    public static Producto buscarProducto(int id) {
-        return productos.stream()
-                .filter(p -> p.getIdProducto() == id)
-                .findFirst()
-                .orElse(null);
-    }
-
-    public static Producto buscarProducto(String nombre) {
-        return productos.stream()
-                .filter(p -> p.getNombre().equalsIgnoreCase(nombre))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public static void eliminarProducto(int id) {
-        Producto p = buscarProducto(id);
-        if (p != null) {
-            productos.remove(p);
-        } else {
-            throw new IllegalArgumentException("No se encontró el producto.");
-        }
-    }
-
-    public static void actualizarProducto(Producto nuevo) {
-        if (nuevo == null) {
-            throw new IllegalArgumentException("Producto inválido.");
-        }
-
-        Producto actual = buscarProducto(nuevo.getIdProducto());
-        if (actual == null) {
-            throw new IllegalArgumentException("No se encontró el producto.");
-        }
-
-        validar(nuevo);
-        actual.setNombre(nuevo.getNombre());
-        actual.setDescripcion(nuevo.getDescripcion());
-        actual.setPrecio(nuevo.getPrecio());
-        actual.setStock(nuevo.getStock());
-
-        if (actual instanceof IActualizableProducto a) {
-            a.actualizarDatos(nuevo);
-        }
-    }
-
-    public static boolean consultarDisponibilidad(int id, int cantidad) {
-        Producto p = buscarProducto(id);
-        return p != null && p.consultarDisponibilidad(cantidad);
-    }
-
-    private static void validar(Producto p) {
-        if (p.getNombre() == null || p.getNombre().isBlank()) {
-            throw new IllegalArgumentException("El nombre del producto es obligatorio.");
-        }
-        if (p.getPrecio() == null || p.getPrecio().signum() <= 0) {
-            throw new IllegalArgumentException("El precio debe ser mayor que 0.");
-        }
-        if (p.getStock() < 0) {
-            throw new IllegalArgumentException("El stock no puede ser negativo.");
-        }
-    }
+  private void validar(Producto p) {
+    if (p == null || p.getNombre() == null || p.getNombre().isBlank())
+      throw new IllegalArgumentException("El nombre del producto es obligatorio.");
+    if (p.getPrecio() == null || p.getPrecio().signum() <= 0)
+      throw new IllegalArgumentException("El precio debe ser mayor que 0.");
+    if (p.getStock() < 0) throw new IllegalArgumentException("El stock no puede ser negativo.");
+  }
 }
