@@ -169,6 +169,33 @@ public final class UI {
                 new EmptyBorder(7, 10, 7, 10)));
     }
 
+    public static ImageIcon logoIcon(int width, int height) {
+        String[] candidates = {
+                "/assets/logo.png",
+                "/main/assets/logo.png",
+                "src/main/resources/assets/logo.png",
+                "src/assets/logo.png"
+        };
+        for (String path : candidates) {
+            java.net.URL resource = UI.class.getResource(path);
+            if (resource == null && path.startsWith("/")) {
+                resource = UI.class.getClassLoader().getResource(path.substring(1));
+            }
+            if (resource != null) {
+                ImageIcon icon = new ImageIcon(resource);
+                Image scaled = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+                return new ImageIcon(scaled);
+            }
+            java.io.File file = new java.io.File(path);
+            if (file.exists()) {
+                ImageIcon icon = new ImageIcon(file.getAbsolutePath());
+                Image scaled = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+                return new ImageIcon(scaled);
+            }
+        }
+        return null;
+    }
+
     public static void info(Component c, String s) {
         JOptionPane.showMessageDialog(c, s, "Distribuidora", JOptionPane.INFORMATION_MESSAGE);
     }

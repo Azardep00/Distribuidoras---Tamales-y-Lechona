@@ -42,16 +42,9 @@ public class ResumenPanel extends JPanel {
 
         JLabel logo = new JLabel();
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        java.net.URL resource = getClass().getResource("/assets/logo.png");
-        ImageIcon icon = resource == null ? null : new ImageIcon(resource);
-        if (icon == null) {
-            java.io.File local = new java.io.File("src/main/resources/assets/logo.png");
-            if (!local.exists()) local = new java.io.File("src/assets/logo.png");
-            if (local.exists()) icon = new ImageIcon(local.getAbsolutePath());
-        }
+        ImageIcon icon = UI.logoIcon(150, 150);
         if (icon != null) {
-            Image scaled = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
-            logo.setIcon(new ImageIcon(scaled));
+            logo.setIcon(icon);
         }
         head.add(logo);
         head.add(Box.createVerticalStrut(6));
