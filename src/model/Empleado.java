@@ -8,16 +8,16 @@ public class Empleado extends Usuario implements IActualizableUsuario {
   private Date fechaContratacion;
 
   public Empleado(
-      int id,
-      String n,
-      String a,
-      String t,
-      String c,
-      String p,
-      boolean e,
-      LocalDate fn,
-      String cargo,
-      Date fc) {
+          int id,
+          String n,
+          String a,
+          String t,
+          String c,
+          String p,
+          boolean e,
+          LocalDate fn,
+          String cargo,
+          Date fc) {
     super(id, n, a, t, c, p, e, fn);
     this.cargo = cargo;
     fechaContratacion = fc;

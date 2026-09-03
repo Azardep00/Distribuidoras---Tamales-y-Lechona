@@ -1,5 +1,5 @@
 package pagos;
 
 public interface ProcesadorPago {
-  String procesarPago(long montoEnCentavos, String referenciaPedido);
+    String procesarPago(long montoEnCentavos, String referenciaPedido);
 }
