@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.tamalesylechona.api.exception.RecursoNoEncontradoException;
 import com.tamalesylechona.api.model.Lechona;
 import com.tamalesylechona.api.model.Producto;
 import com.tamalesylechona.api.model.Tamal;
@@ -29,7 +30,7 @@ public class ProductoService {
 
     public Producto buscarPorId(int id) {
         return repo.findById(id)
-                .orElseThrow(() -> new NoEncontradoException("Producto no encontrado."));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado."));
     }
 
     public List<Producto> buscarPorNombre(String texto) {
@@ -70,11 +71,5 @@ public class ProductoService {
         if (p.getPrecio() == null || p.getPrecio().signum() <= 0)
             throw new IllegalArgumentException("El precio debe ser mayor que 0.");
         if (p.getStock() < 0) throw new IllegalArgumentException("El stock no puede ser negativo.");
-    }
-
-    public static class NoEncontradoException extends RuntimeException {
-        public NoEncontradoException(String mensaje) {
-            super(mensaje);
-        }
     }
 }
