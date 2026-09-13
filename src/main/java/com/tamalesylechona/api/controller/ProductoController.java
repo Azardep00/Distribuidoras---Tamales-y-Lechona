@@ -59,15 +59,4 @@ public class ProductoController {
         service.desactivar(id);
         return ResponseEntity.noContent().build();
     }
-
-    // Manejo simple de errores para que el cliente reciba códigos claros
-    @ExceptionHandler(ProductoService.NoEncontradoException.class)
-    public ResponseEntity<String> manejarNoEncontrado(ProductoService.NoEncontradoException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> manejarValidacion(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
-    }
 }
