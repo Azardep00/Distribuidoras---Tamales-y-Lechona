@@ -140,7 +140,8 @@ public class UsuarioPanel extends JPanel {
         private final JButton toggle = UI.compactButton("▾");
         private final JPopupMenu popup = new JPopupMenu();
         private final JButton[] cells = new JButton[42];
-        private final JLabel title = new JLabel("", SwingConstants.CENTER);
+        private final JComboBox<String> monthCombo;
+        private final JComboBox<Integer> yearCombo;
         private final JButton prev = UI.compactButton("◀");
         private final JButton next = UI.compactButton("▶");
         private LocalDate currentMonth = LocalDate.now();
@@ -159,8 +160,6 @@ public class UsuarioPanel extends JPanel {
             JPanel calendar = new JPanel(new BorderLayout(6, 6));
             calendar.setBorder(BorderFactory.createLineBorder(UI.LINE));
             calendar.setBackground(Color.WHITE);
-<<<<<<< HEAD
-=======
             String[] monthNames = new String[12];
             for (int i = 0; i < 12; i++) {
                 monthNames[i] = Month.of(i + 1).getDisplayName(java.time.format.TextStyle.FULL, new Locale("es", "ES"));
@@ -186,13 +185,16 @@ public class UsuarioPanel extends JPanel {
                 currentMonth = LocalDate.of(y, m, 1);
                 renderCalendar();
             });
->>>>>>> 07e9d27 (DatePicker: limitar año máximo a 2026)
             JPanel header = new JPanel(new BorderLayout(6, 0));
             header.setOpaque(false);
             prev.setPreferredSize(new Dimension(36, 28));
             next.setPreferredSize(new Dimension(36, 28));
             header.add(prev, BorderLayout.WEST);
-            header.add(title, BorderLayout.CENTER);
+            JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 6));
+            centerPanel.setOpaque(false);
+            centerPanel.add(monthCombo);
+            centerPanel.add(yearCombo);
+            header.add(centerPanel, BorderLayout.CENTER);
             header.add(next, BorderLayout.EAST);
             JPanel days = new JPanel(new GridLayout(0, 7, 4, 4));
             String[] names = {"D", "L", "M", "M", "J", "V", "S"};
@@ -264,7 +266,9 @@ public class UsuarioPanel extends JPanel {
         }
 
         private void renderCalendar() {
-            title.setText(currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", new Locale("es", "ES"))));
+            // update month and year combos
+            monthCombo.setSelectedIndex(currentMonth.getMonthValue() - 1);
+            yearCombo.setSelectedItem(currentMonth.getYear());
             LocalDate first = currentMonth.withDayOfMonth(1);
             int offset = (first.getDayOfWeek().getValue() % 7);
             for (int i = 0; i < cells.length; i++) {
