@@ -1,4 +1,4 @@
-package com.tamalesylechona.api.service;
+package main.java.com.tamalesylechona.api.service;
 
 import java.util.List;
 
