@@ -1,4 +1,4 @@
-package com.tamalesylechona.api.model;
+package main.java.com.tamalesylechona.api.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

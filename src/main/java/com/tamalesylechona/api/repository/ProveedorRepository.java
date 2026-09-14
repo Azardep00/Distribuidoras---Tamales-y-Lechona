@@ -1,4 +1,4 @@
-package com.tamalesylechona.api.repository;
+package main.java.com.tamalesylechona.api.repository;
 
 import java.util.List;
 
