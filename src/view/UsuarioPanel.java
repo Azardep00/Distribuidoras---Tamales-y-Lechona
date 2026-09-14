@@ -159,6 +159,34 @@ public class UsuarioPanel extends JPanel {
             JPanel calendar = new JPanel(new BorderLayout(6, 6));
             calendar.setBorder(BorderFactory.createLineBorder(UI.LINE));
             calendar.setBackground(Color.WHITE);
+<<<<<<< HEAD
+=======
+            String[] monthNames = new String[12];
+            for (int i = 0; i < 12; i++) {
+                monthNames[i] = Month.of(i + 1).getDisplayName(java.time.format.TextStyle.FULL, new Locale("es", "ES"));
+            }
+            int maxYear = 2026;
+                        int minYear = LocalDate.now().getYear() - 100;
+                        int size = Math.max(1, maxYear - minYear + 1);
+                        Integer[] years = new Integer[size];
+                        for (int i = 0; i < years.length; i++) years[i] = minYear + i;
+            monthCombo = new JComboBox<>(monthNames);
+            yearCombo = new JComboBox<>(years);
+            monthCombo.setFocusable(false);
+            yearCombo.setFocusable(false);
+            monthCombo.addActionListener(e -> {
+                int m = monthCombo.getSelectedIndex() + 1;
+                int y = (Integer) yearCombo.getSelectedItem();
+                currentMonth = LocalDate.of(y, m, 1);
+                renderCalendar();
+            });
+            yearCombo.addActionListener(e -> {
+                int m = monthCombo.getSelectedIndex() + 1;
+                int y = (Integer) yearCombo.getSelectedItem();
+                currentMonth = LocalDate.of(y, m, 1);
+                renderCalendar();
+            });
+>>>>>>> 07e9d27 (DatePicker: limitar año máximo a 2026)
             JPanel header = new JPanel(new BorderLayout(6, 0));
             header.setOpaque(false);
             prev.setPreferredSize(new Dimension(36, 28));
