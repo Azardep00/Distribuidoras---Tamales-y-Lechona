@@ -1,4 +1,4 @@
-package com.tamalesylechona.api.controller;
+package main.java.com.tamalesylechona.api.controller;
 
 import java.util.List;
 

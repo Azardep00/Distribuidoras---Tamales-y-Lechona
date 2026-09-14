@@ -59,6 +59,13 @@ public class ProductoService {
         return repo.save(actual);
     }
 
+    // Usado por MovimientoInventarioService después de aumentar/descontar stock
+    // (el objeto que devuelve buscarPorId queda "desconectado" de la transacción,
+    // así que hay que guardarlo explícitamente para que el cambio se persista).
+    public Producto guardar(Producto p) {
+        return repo.save(p);
+    }
+
     public void desactivar(int id) {
         Producto p = buscarPorId(id);
         p.setEstado(false);
