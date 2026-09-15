@@ -1,0 +1,44 @@
+# IDEs y editores
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos temporales / logs
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.env
+
+# Java / Android
+*.class
+*.jar
+build/
+target/
+out/
+.gradle/
+
+# Variables de entorno / secretos
+.env
+.env.local
+*.pem
+*.key
