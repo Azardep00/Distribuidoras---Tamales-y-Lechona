@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/proveedores?incluirInactivos=false"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    incluirInactivos: "false"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      [
+        {
+          "idProveedor": 4270,
+          "nombre": "string",
+          "telefono": "string",
+          "correo": "string",
+          "direccion": "string",
+          "estado": false
+        },
+        {
+          "idProveedor": 3855,
+          "nombre": "string",
+          "telefono": "string",
+          "correo": "string",
+          "direccion": "string",
+          "estado": true
+        }
+      ]
+order: 1000

@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/proveedores"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: "*/*"
+  body:
+    type: json
+    content: |-
+      {
+        "idProveedor": 7283,
+        "nombre": "string",
+        "telefono": "string",
+        "correo": "string",
+        "direccion": "string",
+        "estado": true
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "idProveedor": 7283,
+        "nombre": "string",
+        "telefono": "string",
+        "correo": "string",
+        "direccion": "string",
+        "estado": true
+      }
+order: 1000

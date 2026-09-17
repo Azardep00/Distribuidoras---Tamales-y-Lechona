@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/productos/:id"
+method: GET
+headers:
+  Accept: "*/*"
+pathVariables:
+  id: "7331"
+settings: {}
+examples: ./.resources/buscar Por Id 2.resources/examples
+order: 1000

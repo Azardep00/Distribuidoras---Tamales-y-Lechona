@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/api/productos/lechonas"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "idProducto": 4058,
+      "nombre": "string",
+      "descripcion": "string",
+      "precio": 756.1503486247012,
+      "stock": 6438,
+      "estado": false,
+      "tipoProducto": "string",
+      "detalleEspecifico": "string",
+      "tamano": "PEQUENA",
+      "numeroPorciones": 3265
+    }
+settings: {}
+examples: ./.resources/crear Lechona.resources/examples
+order: 1000

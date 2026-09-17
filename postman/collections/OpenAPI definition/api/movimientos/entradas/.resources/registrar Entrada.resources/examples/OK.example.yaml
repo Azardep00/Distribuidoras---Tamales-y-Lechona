@@ -1,0 +1,52 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/movimientos/entradas"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: "*/*"
+  body:
+    type: json
+    content: |-
+      {
+        "idProducto": 2590,
+        "idProveedor": 1021,
+        "cantidad": 9002,
+        "motivo": "string"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "idMovimiento": 9856,
+        "tipo": "SALIDA",
+        "cantidad": 2479,
+        "fecha": "2012-05-12T12:45:49.730Z",
+        "motivo": "string",
+        "producto": {
+          "idProducto": 2583,
+          "nombre": "string",
+          "descripcion": "string",
+          "precio": 2815.7522130304246,
+          "stock": 2930,
+          "estado": false,
+          "tipoProducto": "string",
+          "detalleEspecifico": "string",
+          "tipo": "NORMAL",
+          "tamano": "MEDIANO"
+        },
+        "proveedor": {
+          "idProveedor": 2982,
+          "nombre": "string",
+          "telefono": "string",
+          "correo": "string",
+          "direccion": "string",
+          "estado": false
+        }
+      }
+order: 1000

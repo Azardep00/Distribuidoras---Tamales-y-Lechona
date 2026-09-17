@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/usuarios/login"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: "*/*"
+  body:
+    type: json
+    content: |-
+      {
+        "correo": "string",
+        "contrasena": "string"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "idUsuario": 9994,
+        "nombre": "string",
+        "apellido": "string",
+        "correo": "string",
+        "tipoUsuario": "string"
+      }
+order: 1000

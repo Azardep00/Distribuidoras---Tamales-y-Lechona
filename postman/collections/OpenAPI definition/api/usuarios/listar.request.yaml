@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios?incluirInactivos=false"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  incluirInactivos: "false"
+settings: {}
+examples: ./.resources/listar.resources/examples
+order: 6000

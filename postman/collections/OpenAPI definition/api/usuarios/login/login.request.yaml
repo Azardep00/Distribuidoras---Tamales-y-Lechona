@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios/login"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "correo": "string",
+      "contrasena": "string"
+    }
+settings: {}
+examples: ./.resources/login.resources/examples
+order: 1000

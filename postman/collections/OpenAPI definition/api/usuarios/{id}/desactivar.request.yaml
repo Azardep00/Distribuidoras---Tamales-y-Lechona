@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios/:id"
+method: DELETE
+pathVariables:
+  id: "7331"
+settings: {}
+examples: ./.resources/desactivar.resources/examples
+order: 4000

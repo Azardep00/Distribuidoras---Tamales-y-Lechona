@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/api/proveedores/:id"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+pathVariables:
+  id: "7331"
+body:
+  type: json
+  content: |-
+    {
+      "idProveedor": 7283,
+      "nombre": "string",
+      "telefono": "string",
+      "correo": "string",
+      "direccion": "string",
+      "estado": true
+    }
+settings: {}
+examples: ./.resources/actualizar 1.resources/examples
+order: 2000

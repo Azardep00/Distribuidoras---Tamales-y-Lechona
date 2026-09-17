@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseUrl}}/api/movimientos?idProducto=7331&tipo=SALIDA"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  idProducto: "7331"
+  tipo: SALIDA
+settings: {}
+examples: ./.resources/listar 4.resources/examples
+order: 5000

@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios/empleados"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "idUsuario": 6851,
+      "nombre": "string",
+      "apellido": "string",
+      "telefono": "string",
+      "correo": "string",
+      "contrasena": "string",
+      "estado": true,
+      "fechaNacimiento": "1977-06-23",
+      "tipoUsuario": "string",
+      "cargo": "string",
+      "fechaContratacion": "1992-04-20"
+    }
+settings: {}
+examples: ./.resources/crear Empleado.resources/examples
+order: 1000

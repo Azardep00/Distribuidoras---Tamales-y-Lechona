@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/api/pedidos"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "idCliente": 1545,
+      "detalles": [
+        {
+          "idProducto": 5683,
+          "cantidad": 7540
+        },
+        {
+          "idProducto": 9790,
+          "cantidad": 2353
+        }
+      ]
+    }
+settings: {}
+examples: ./.resources/crear.resources/examples
+order: 3000

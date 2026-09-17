@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/api/pedidos/:id/estado"
+method: PATCH
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+pathVariables:
+  id: "7331"
+body:
+  type: json
+  content: |-
+    {
+      "estado": "ENTREGADO"
+    }
+settings: {}
+examples: ./.resources/cambiar Estado.resources/examples
+order: 1000

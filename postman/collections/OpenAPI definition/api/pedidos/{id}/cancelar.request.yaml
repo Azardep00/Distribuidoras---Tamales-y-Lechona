@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/pedidos/:id"
+method: DELETE
+pathVariables:
+  id: "7331"
+settings: {}
+examples: ./.resources/cancelar.resources/examples
+order: 3000

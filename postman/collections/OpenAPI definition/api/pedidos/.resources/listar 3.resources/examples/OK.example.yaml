@@ -1,0 +1,134 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/pedidos?idCliente=7331&estado=EN_PREPARACION"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    idCliente: "7331"
+    estado: EN_PREPARACION
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      [
+        {
+          "idPedido": 9945,
+          "cliente": {
+            "idUsuario": 9257,
+            "nombre": "string",
+            "apellido": "string",
+            "telefono": "string",
+            "correo": "string",
+            "estado": false,
+            "fechaNacimiento": "1949-02-07",
+            "tipoUsuario": "string",
+            "tipoCliente": "NUEVO",
+            "direccion": "string",
+            "fechaRegistro": "1998-05-07"
+          },
+          "estado": "CANCELADO",
+          "fecha": "1949-01-06T22:50:24.706Z",
+          "detalles": [
+            {
+              "idDetallePedido": 169,
+              "producto": {
+                "idProducto": 1052,
+                "nombre": "string",
+                "descripcion": "string",
+                "precio": 6803.464723664802,
+                "stock": 9743,
+                "estado": true,
+                "tipoProducto": "string",
+                "detalleEspecifico": "string",
+                "tamano": "PEQUENA",
+                "numeroPorciones": 66
+              },
+              "cantidad": 176,
+              "precioUnitario": 2117.104749798451,
+              "subtotal": 1766.3561468013388
+            },
+            {
+              "idDetallePedido": 2982,
+              "producto": {
+                "idProducto": 6097,
+                "nombre": "string",
+                "descripcion": "string",
+                "precio": 3082.731124632655,
+                "stock": 1217,
+                "estado": true,
+                "tipoProducto": "string",
+                "detalleEspecifico": "string",
+                "tamano": "GRANDE",
+                "numeroPorciones": 9894
+              },
+              "cantidad": 2148,
+              "precioUnitario": 2644.784024002348,
+              "subtotal": 7443.032662274638
+            }
+          ],
+          "total": 3135.0131790463465
+        },
+        {
+          "idPedido": 6720,
+          "cliente": {
+            "idUsuario": 5595,
+            "nombre": "string",
+            "apellido": "string",
+            "telefono": "string",
+            "correo": "string",
+            "estado": true,
+            "fechaNacimiento": "1949-02-17",
+            "tipoUsuario": "string",
+            "tipoCliente": "NUEVO",
+            "direccion": "string",
+            "fechaRegistro": "1992-05-18"
+          },
+          "estado": "ENTREGADO",
+          "fecha": "1982-05-10T14:25:10.531Z",
+          "detalles": [
+            {
+              "idDetallePedido": 3914,
+              "producto": {
+                "idProducto": 7637,
+                "nombre": "string",
+                "descripcion": "string",
+                "precio": 8746.452899922047,
+                "stock": 2655,
+                "estado": false,
+                "tipoProducto": "string",
+                "detalleEspecifico": "string",
+                "tamano": "MEDIANA",
+                "numeroPorciones": 8475
+              },
+              "cantidad": 4566,
+              "precioUnitario": 5192.153961415791,
+              "subtotal": 5102.190926308817
+            },
+            {
+              "idDetallePedido": 2588,
+              "producto": {
+                "idProducto": 9270,
+                "nombre": "string",
+                "descripcion": "string",
+                "precio": 5810.760257833871,
+                "stock": 2349,
+                "estado": true,
+                "tipoProducto": "string",
+                "detalleEspecifico": "string",
+                "tamano": "MEDIANA",
+                "numeroPorciones": 8070
+              },
+              "cantidad": 2603,
+              "precioUnitario": 9010.481390937448,
+              "subtotal": 4264.833388860666
+            }
+          ],
+          "total": 8281.24055662708
+        }
+      ]
+order: 1000

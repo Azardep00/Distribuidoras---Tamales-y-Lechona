@@ -1,0 +1,44 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/movimientos/:id"
+  method: GET
+  headers:
+    Accept: "*/*"
+  pathVariables:
+    id: "7331"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "idMovimiento": 7672,
+        "tipo": "ENTRADA",
+        "cantidad": 1690,
+        "fecha": "1970-06-10T14:32:29.401Z",
+        "motivo": "string",
+        "producto": {
+          "idProducto": 8167,
+          "nombre": "string",
+          "descripcion": "string",
+          "precio": 4702.345331627446,
+          "stock": 9687,
+          "estado": true,
+          "tipoProducto": "string",
+          "detalleEspecifico": "string",
+          "tamano": "GRANDE",
+          "numeroPorciones": 1676
+        },
+        "proveedor": {
+          "idProveedor": 6219,
+          "nombre": "string",
+          "telefono": "string",
+          "correo": "string",
+          "direccion": "string",
+          "estado": false
+        }
+      }
+order: 1000

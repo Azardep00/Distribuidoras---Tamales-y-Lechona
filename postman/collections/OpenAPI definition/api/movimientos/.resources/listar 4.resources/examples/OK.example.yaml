@@ -1,0 +1,74 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/movimientos?idProducto=7331&tipo=SALIDA"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    idProducto: "7331"
+    tipo: SALIDA
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      [
+        {
+          "idMovimiento": 8889,
+          "tipo": "ENTRADA",
+          "cantidad": 2918,
+          "fecha": "1952-03-25T21:52:19.702Z",
+          "motivo": "string",
+          "producto": {
+            "idProducto": 550,
+            "nombre": "string",
+            "descripcion": "string",
+            "precio": 2248.6032221680753,
+            "stock": 5718,
+            "estado": true,
+            "tipoProducto": "string",
+            "detalleEspecifico": "string",
+            "tamano": "PEQUENA",
+            "numeroPorciones": 900
+          },
+          "proveedor": {
+            "idProveedor": 1100,
+            "nombre": "string",
+            "telefono": "string",
+            "correo": "string",
+            "direccion": "string",
+            "estado": true
+          }
+        },
+        {
+          "idMovimiento": 1847,
+          "tipo": "ENTRADA",
+          "cantidad": 8146,
+          "fecha": "2010-10-02T14:31:08.925Z",
+          "motivo": "string",
+          "producto": {
+            "idProducto": 3767,
+            "nombre": "string",
+            "descripcion": "string",
+            "precio": 2585.2256415153274,
+            "stock": 6549,
+            "estado": true,
+            "tipoProducto": "string",
+            "detalleEspecifico": "string",
+            "tamano": "MEDIANA",
+            "numeroPorciones": 8962
+          },
+          "proveedor": {
+            "idProveedor": 7490,
+            "nombre": "string",
+            "telefono": "string",
+            "correo": "string",
+            "direccion": "string",
+            "estado": false
+          }
+        }
+      ]
+order: 1000
