@@ -14,6 +14,8 @@ import com.tamaleslechona.tamaleslechona.model.TamanoLechona;
 import com.tamaleslechona.tamaleslechona.model.TamanoTamal;
 import com.tamaleslechona.tamaleslechona.model.TipoCliente;
 import com.tamaleslechona.tamaleslechona.model.TipoTamal;
+import com.tamaleslechona.tamaleslechona.repository.ProductoRepository;
+import com.tamaleslechona.tamaleslechona.repository.UsuarioRepository;
 import com.tamaleslechona.tamaleslechona.service.ProductoService;
 import com.tamaleslechona.tamaleslechona.service.UsuarioService;
 
@@ -23,14 +25,29 @@ public class CargadorDatosIniciales implements CommandLineRunner {
 
     private final ProductoService productoService;
     private final UsuarioService usuarioService;
+    private final ProductoRepository productoRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public CargadorDatosIniciales(ProductoService productoService, UsuarioService usuarioService) {
+    public CargadorDatosIniciales(
+            ProductoService productoService,
+            UsuarioService usuarioService,
+            ProductoRepository productoRepository,
+            UsuarioRepository usuarioRepository) {
         this.productoService = productoService;
         this.usuarioService = usuarioService;
+        this.productoRepository = productoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
     public void run(String... args) {
+        // Con H2 esto no importaba (se borraba todo al reiniciar), pero con una
+        // base de datos persistente (Postgres/Neon) hay que evitar volver a
+        // insertar los mismos datos de ejemplo cada vez que arranca la app.
+        if (productoRepository.count() > 0 || usuarioRepository.count() > 0) {
+            return;
+        }
+
         productoService.registrar(new Tamal(
                 "Tamal normal grande", "Tamal tradicional tamaño grande",
                 new BigDecimal("8000"), 20, true, TipoTamal.NORMAL, TamanoTamal.GRANDE));
