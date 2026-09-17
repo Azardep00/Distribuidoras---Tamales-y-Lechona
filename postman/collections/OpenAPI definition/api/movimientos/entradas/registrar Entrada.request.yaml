@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/api/movimientos/entradas"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "idProducto": 2590,
+      "idProveedor": 1021,
+      "cantidad": 9002,
+      "motivo": "string"
+    }
+settings: {}
+examples: ./.resources/registrar Entrada.resources/examples
+order: 1000

@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios/buscar?correo=string"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  correo: string
+settings: {}
+examples: ./.resources/buscar Por Correo.resources/examples
+order: 1000

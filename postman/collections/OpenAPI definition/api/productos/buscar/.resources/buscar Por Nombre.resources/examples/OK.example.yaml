@@ -1,0 +1,43 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/productos/buscar?nombre=string"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    nombre: string
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      [
+        {
+          "idProducto": 4781,
+          "nombre": "string",
+          "descripcion": "string",
+          "precio": 5263.865720586157,
+          "stock": 6760,
+          "estado": false,
+          "tipoProducto": "string",
+          "detalleEspecifico": "string",
+          "tamano": "PEQUENA",
+          "numeroPorciones": 9496
+        },
+        {
+          "idProducto": 6511,
+          "nombre": "string",
+          "descripcion": "string",
+          "precio": 3009.2800118298014,
+          "stock": 7895,
+          "estado": false,
+          "tipoProducto": "string",
+          "detalleEspecifico": "string",
+          "tamano": "MEDIANA",
+          "numeroPorciones": 9190
+        }
+      ]
+order: 1000

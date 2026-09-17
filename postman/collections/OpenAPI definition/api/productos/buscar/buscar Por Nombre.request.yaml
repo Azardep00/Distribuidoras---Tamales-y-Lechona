@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/productos/buscar?nombre=string"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  nombre: string
+settings: {}
+examples: ./.resources/buscar Por Nombre.resources/examples
+order: 1000

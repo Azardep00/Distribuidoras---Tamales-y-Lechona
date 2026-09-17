@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/proveedores?incluirInactivos=false"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  incluirInactivos: "false"
+settings: {}
+examples: ./.resources/listar 1.resources/examples
+order: 3000

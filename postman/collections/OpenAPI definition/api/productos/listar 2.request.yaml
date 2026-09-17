@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/productos?incluirInactivos=false"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  incluirInactivos: "false"
+settings: {}
+examples: ./.resources/listar 2.resources/examples
+order: 5000

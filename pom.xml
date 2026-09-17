@@ -12,8 +12,8 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.tamalesylechona</groupId>
-    <artifactId>tamales-lechona-api</artifactId>
+    <groupId>com.tamaleslechona</groupId>
+    <artifactId>tamaleslechona</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>tamales-lechona-api</name>
     <description>API REST (productos) - El Lechon Tamales y Lechona</description>

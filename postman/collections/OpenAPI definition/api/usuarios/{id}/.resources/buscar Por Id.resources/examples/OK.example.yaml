@@ -1,0 +1,31 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/usuarios/:id"
+  method: GET
+  headers:
+    Accept: "*/*"
+  pathVariables:
+    id: "7331"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "idUsuario": 5388,
+        "nombre": "string",
+        "apellido": "string",
+        "telefono": "string",
+        "correo": "string",
+        "contrasena": "string",
+        "estado": true,
+        "fechaNacimiento": "1969-05-09",
+        "tipoUsuario": "string",
+        "tipoCliente": "NUEVO",
+        "direccion": "string",
+        "fechaRegistro": "1980-05-14"
+      }
+order: 1000

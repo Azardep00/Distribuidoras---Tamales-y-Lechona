@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/proveedores/:id"
+method: DELETE
+pathVariables:
+  id: "7331"
+settings: {}
+examples: ./.resources/desactivar 1.resources/examples
+order: 3000

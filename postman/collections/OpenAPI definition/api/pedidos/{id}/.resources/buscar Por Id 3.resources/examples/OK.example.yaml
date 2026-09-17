@@ -1,0 +1,74 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/pedidos/:id"
+  method: GET
+  headers:
+    Accept: "*/*"
+  pathVariables:
+    id: "7331"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "idPedido": 8722,
+        "cliente": {
+          "idUsuario": 7270,
+          "nombre": "string",
+          "apellido": "string",
+          "telefono": "string",
+          "correo": "string",
+          "estado": false,
+          "fechaNacimiento": "2006-01-06",
+          "tipoUsuario": "string",
+          "tipoCliente": "FRECUENTE",
+          "direccion": "string",
+          "fechaRegistro": "2022-03-27"
+        },
+        "estado": "CANCELADO",
+        "fecha": "1973-02-03T12:18:33.133Z",
+        "detalles": [
+          {
+            "idDetallePedido": 4893,
+            "producto": {
+              "idProducto": 771,
+              "nombre": "string",
+              "descripcion": "string",
+              "precio": 1407.629984542974,
+              "stock": 639,
+              "estado": false,
+              "tipoProducto": "string",
+              "detalleEspecifico": "string",
+              "tamano": "MEDIANA",
+              "numeroPorciones": 3136
+            },
+            "cantidad": 4814,
+            "precioUnitario": 7317.740843330724,
+            "subtotal": 1228.1726391864056
+          },
+          {
+            "idDetallePedido": 9252,
+            "producto": {
+              "idProducto": 1812,
+              "nombre": "string",
+              "descripcion": "string",
+              "precio": 9087.116313879793,
+              "stock": 3069,
+              "estado": true,
+              "tipoProducto": "string",
+              "detalleEspecifico": "string",
+              "tamano": "PEQUENA",
+              "numeroPorciones": 7310
+            },
+            "cantidad": 9768,
+            "precioUnitario": 9926.672522789948,
+            "subtotal": 570.1016074711607
+          }
+        ],
+        "total": 7086.727895640172
+      }
+order: 1000

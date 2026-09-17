@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/api/proveedores"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "idProveedor": 7283,
+      "nombre": "string",
+      "telefono": "string",
+      "correo": "string",
+      "direccion": "string",
+      "estado": true
+    }
+settings: {}
+examples: ./.resources/registrar.resources/examples
+order: 4000

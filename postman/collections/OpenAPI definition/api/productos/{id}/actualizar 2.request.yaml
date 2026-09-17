@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{baseUrl}}/api/productos/:id"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+pathVariables:
+  id: "7331"
+body:
+  type: json
+  content: |-
+    {
+      "idProducto": 4058,
+      "nombre": "string",
+      "descripcion": "string",
+      "precio": 756.1503486247012,
+      "stock": 6438,
+      "estado": false,
+      "tipoProducto": "string",
+      "detalleEspecifico": "string",
+      "tamano": "PEQUENA",
+      "numeroPorciones": 3265
+    }
+settings: {}
+examples: ./.resources/actualizar 2.resources/examples
+order: 2000

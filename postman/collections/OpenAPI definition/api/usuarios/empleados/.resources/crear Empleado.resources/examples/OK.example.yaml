@@ -1,0 +1,46 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/usuarios/empleados"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: "*/*"
+  body:
+    type: json
+    content: |-
+      {
+        "idUsuario": 6851,
+        "nombre": "string",
+        "apellido": "string",
+        "telefono": "string",
+        "correo": "string",
+        "contrasena": "string",
+        "estado": true,
+        "fechaNacimiento": "1977-06-23",
+        "tipoUsuario": "string",
+        "cargo": "string",
+        "fechaContratacion": "1992-04-20"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "idUsuario": 5388,
+        "nombre": "string",
+        "apellido": "string",
+        "telefono": "string",
+        "correo": "string",
+        "contrasena": "string",
+        "estado": true,
+        "fechaNacimiento": "1969-05-09",
+        "tipoUsuario": "string",
+        "tipoCliente": "NUEVO",
+        "direccion": "string",
+        "fechaRegistro": "1980-05-14"
+      }
+order: 1000

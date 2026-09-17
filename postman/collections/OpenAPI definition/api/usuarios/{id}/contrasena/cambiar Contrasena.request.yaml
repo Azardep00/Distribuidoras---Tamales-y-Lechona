@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios/:id/contrasena"
+method: PATCH
+headers:
+  Content-Type: application/json
+pathVariables:
+  id: "7331"
+body:
+  type: json
+  content: |-
+    {
+      "contrasenaActual": "string",
+      "contrasenaNueva": "string"
+    }
+settings: {}
+examples: ./.resources/cambiar Contrasena.resources/examples
+order: 1000

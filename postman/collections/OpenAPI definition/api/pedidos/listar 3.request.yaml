@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseUrl}}/api/pedidos?idCliente=7331&estado=EN_PREPARACION"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  idCliente: "7331"
+  estado: EN_PREPARACION
+settings: {}
+examples: ./.resources/listar 3.resources/examples
+order: 2000

@@ -1,0 +1,45 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/usuarios?incluirInactivos=false"
+  method: GET
+  headers:
+    Accept: "*/*"
+  queryParams:
+    incluirInactivos: "false"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      [
+        {
+          "idUsuario": 5719,
+          "nombre": "string",
+          "apellido": "string",
+          "telefono": "string",
+          "correo": "string",
+          "estado": true,
+          "fechaNacimiento": "1989-09-09",
+          "tipoUsuario": "string",
+          "tipoCliente": "PREMIUM",
+          "direccion": "string",
+          "fechaRegistro": "2008-12-12"
+        },
+        {
+          "idUsuario": 6224,
+          "nombre": "string",
+          "apellido": "string",
+          "telefono": "string",
+          "correo": "string",
+          "estado": true,
+          "fechaNacimiento": "1986-11-24",
+          "tipoUsuario": "string",
+          "tipoCliente": "PREMIUM",
+          "direccion": "string",
+          "fechaRegistro": "2020-04-28"
+        }
+      ]
+order: 1000

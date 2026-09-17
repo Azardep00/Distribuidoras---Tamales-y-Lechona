@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/proveedores/buscar?q=string"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  q: string
+settings: {}
+examples: ./.resources/buscar.resources/examples
+order: 1000

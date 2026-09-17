@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios/:id"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+pathVariables:
+  id: "7331"
+body:
+  type: json
+  content: |-
+    {
+      "idUsuario": 5388,
+      "nombre": "string",
+      "apellido": "string",
+      "telefono": "string",
+      "correo": "string",
+      "contrasena": "string",
+      "estado": true,
+      "fechaNacimiento": "1969-05-09",
+      "tipoUsuario": "string",
+      "tipoCliente": "NUEVO",
+      "direccion": "string",
+      "fechaRegistro": "1980-05-14"
+    }
+settings: {}
+examples: ./.resources/actualizar.resources/examples
+order: 3000

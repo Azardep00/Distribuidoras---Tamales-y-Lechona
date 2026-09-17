@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/api/movimientos/salidas"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "idProducto": 4479,
+      "cantidad": 5303,
+      "motivo": "string"
+    }
+settings: {}
+examples: ./.resources/registrar Salida.resources/examples
+order: 1000
