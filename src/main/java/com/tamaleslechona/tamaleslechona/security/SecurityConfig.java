@@ -53,10 +53,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/productos/**").hasRole("EMPLEADO")
                 .requestMatchers(HttpMethod.DELETE, "/api/productos/**").hasRole("EMPLEADO")
                 .requestMatchers(HttpMethod.PATCH, "/api/pedidos/*/estado").hasRole("EMPLEADO")
-                // TEMPORAL: permite crear el primer empleado sin token. Bórrala después.
-                .requestMatchers(HttpMethod.POST, "/api/usuarios/empleados").permitAll()
                 .requestMatchers("/api/usuarios/empleados").hasRole("EMPLEADO")
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("EMPLEADO")
+                .requestMatchers(HttpMethod.GET, "/api/usuarios/buscar").hasRole("EMPLEADO")
+                .requestMatchers(HttpMethod.DELETE, "/api/usuarios/*").hasRole("EMPLEADO")
 
                 // Cualquier otra ruta bajo /api: basta con estar logueado
                 // (cliente o empleado). Ej: crear pedido, ver mis pedidos, mi perfil.
