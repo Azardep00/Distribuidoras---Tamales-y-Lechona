@@ -11,14 +11,17 @@ import com.tamaleslechona.tamaleslechona.model.Cliente;
 import com.tamaleslechona.tamaleslechona.model.Empleado;
 import com.tamaleslechona.tamaleslechona.model.Usuario;
 import com.tamaleslechona.tamaleslechona.repository.UsuarioRepository;
+import com.tamaleslechona.tamaleslechona.security.JwtService;
 
 @Service
 public class UsuarioService {
 
     private final UsuarioRepository repo;
+    private final JwtService jwtService;
 
-    public UsuarioService(UsuarioRepository repo) {
+    public UsuarioService(UsuarioRepository repo, JwtService jwtService) {
         this.repo = repo;
+        this.jwtService = jwtService;
     }
 
     public Usuario registrar(Usuario u) {
@@ -98,7 +101,8 @@ public class UsuarioService {
         if (!u.verificarContrasena(contrasena)) {
             throw new CredencialesInvalidasException("Correo o contraseña incorrectos.");
         }
-        return LoginResponse.desde(u);
+        String token = jwtService.generarToken(u);
+        return LoginResponse.desde(u, token);
     }
 
     private void validarDatosBasicos(Usuario u) {
