@@ -15,6 +15,10 @@ import com.tamaleslechona.tamaleslechona.model.Cliente;
 import com.tamaleslechona.tamaleslechona.model.Empleado;
 import com.tamaleslechona.tamaleslechona.model.Usuario;
 import com.tamaleslechona.tamaleslechona.service.UsuarioService;
+import com.tamaleslechona.tamaleslechona.exception.CredencialesInvalidasException;
+import com.tamaleslechona.tamaleslechona.security.LimitadorLogin;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/usuarios")
