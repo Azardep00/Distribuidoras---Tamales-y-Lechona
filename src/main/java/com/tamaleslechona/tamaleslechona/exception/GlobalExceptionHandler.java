@@ -39,5 +39,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(new ErrorResponse(mensaje));
     }
 
+    @ExceptionHandler(DemasiadosIntentosException.class)
+    public ResponseEntity<ErrorResponse> manejarDemasiadosIntentos(DemasiadosIntentosException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(new ErrorResponse(ex.getMessage()));
+    }
     public record ErrorResponse(String mensaje) {}
 }
