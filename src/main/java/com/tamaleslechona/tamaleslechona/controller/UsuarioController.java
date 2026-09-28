@@ -25,9 +25,11 @@ import jakarta.servlet.http.HttpServletRequest;
 public class UsuarioController {
 
     private final UsuarioService service;
+    private final LimitadorLogin limitador;
 
-    public UsuarioController(UsuarioService service) {
+    public UsuarioController(UsuarioService service, LimitadorLogin limitador) {
         this.service = service;
+        this.limitador = limitador;
     }
 
     // Solo empleados llegan aquí (ver SecurityConfig: GET /api/usuarios -> hasRole EMPLEADO).
@@ -91,8 +93,33 @@ public class UsuarioController {
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest body) {
-        return service.iniciarSesion(body.correo(), body.contrasena());
+    public LoginResponse login(@RequestBody LoginRequest body, HttpServletRequest request) {
+        String ip = ipCliente(request);
+        String correo = body.correo();
+
+        // 1) Si la IP o el correo estan bloqueados, responde 429 sin mas.
+        limitador.verificarNoBloqueado(ip, correo);
+
+        try {
+            LoginResponse respuesta = service.iniciarSesion(correo, body.contrasena());
+            // 2) Login correcto: se reinicia el contador de ese correo.
+            limitador.registrarExito(correo);
+            return respuesta;
+        } catch (CredencialesInvalidasException e) {
+            // 3) Credenciales malas: se cuenta el fallo y se sigue con el 401 normal.
+            limitador.registrarFallo(ip, correo);
+            throw e;
+        }
+    }
+
+    // Detras del proxy de Render, getRemoteAddr() devuelve la IP del proxy, no
+    // la del usuario. La IP real viene en X-Forwarded-For (la primera de la lista).
+    private String ipCliente(HttpServletRequest request) {
+        String reenviada = request.getHeader("X-Forwarded-For");
+        if (reenviada != null && !reenviada.isBlank()) {
+            return reenviada.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     private void verificarEsPropioOEmpleado(int idSolicitado, Authentication auth) {
