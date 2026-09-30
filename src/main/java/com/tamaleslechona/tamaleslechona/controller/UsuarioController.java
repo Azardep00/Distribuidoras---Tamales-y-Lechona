@@ -11,13 +11,14 @@ import org.springframework.web.bind.annotation.*;
 import com.tamaleslechona.tamaleslechona.dto.CambiarContrasenaRequest;
 import com.tamaleslechona.tamaleslechona.dto.LoginRequest;
 import com.tamaleslechona.tamaleslechona.dto.LoginResponse;
+import com.tamaleslechona.tamaleslechona.dto.RefreshRequest;
 import com.tamaleslechona.tamaleslechona.model.Cliente;
 import com.tamaleslechona.tamaleslechona.model.Empleado;
 import com.tamaleslechona.tamaleslechona.model.Usuario;
 import com.tamaleslechona.tamaleslechona.service.UsuarioService;
 import com.tamaleslechona.tamaleslechona.exception.CredencialesInvalidasException;
 import com.tamaleslechona.tamaleslechona.security.LimitadorLogin;
-
+import com.tamaleslechona.tamaleslechona.dto.RefreshRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
@@ -110,6 +111,17 @@ public class UsuarioController {
             limitador.registrarFallo(ip, correo);
             throw e;
         }
+    }
+
+    @PostMapping("/refresh")
+    public LoginResponse refrescar(@RequestBody RefreshRequest body) {
+        return service.refrescarSesion(body.refreshToken());
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestBody RefreshRequest body) {
+        service.cerrarSesion(body.refreshToken());
+        return ResponseEntity.noContent().build();
     }
 
     // Detras del proxy de Render, getRemoteAddr() devuelve la IP del proxy, no
