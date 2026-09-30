@@ -25,7 +25,7 @@ public class JwtService {
     @Value("${jwt.secret:tamales-lechona-clave-de-desarrollo-cambiar-en-produccion-32}")
     private String secretoConfigurado;
 
-    @Value("${jwt.expiracion-ms:86400000}") // 24 horas por defecto
+    @Value("${jwt.expiracion-ms:900000}") // 15 minutos por defecto
     private long expiracionMs;
 
     private SecretKey clave() {
