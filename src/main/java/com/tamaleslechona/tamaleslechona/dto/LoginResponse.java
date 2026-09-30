@@ -8,17 +8,16 @@ public record LoginResponse(
         String apellido,
         String correo,
         String tipoUsuario,
-        String token) {
+        String token,
+        String refreshToken) {
 
-    // Sobrecarga sin token: la usa Cliente/Empleado al registrarse, donde no
-    // hay sesión que iniciar todavía (solo devolvemos los datos creados).
     public static LoginResponse desde(Usuario u) {
         return new LoginResponse(
-                u.getIdUsuario(), u.getNombre(), u.getApellido(), u.getCorreo(), u.getTipoUsuario(), null);
+                u.getIdUsuario(), u.getNombre(), u.getApellido(), u.getCorreo(), u.getTipoUsuario(), null, null);
     }
 
-    public static LoginResponse desde(Usuario u, String token) {
+    public static LoginResponse desde(Usuario u, String token, String refreshToken) {
         return new LoginResponse(
-                u.getIdUsuario(), u.getNombre(), u.getApellido(), u.getCorreo(), u.getTipoUsuario(), token);
+                u.getIdUsuario(), u.getNombre(), u.getApellido(), u.getCorreo(), u.getTipoUsuario(), token, refreshToken);
     }
 }

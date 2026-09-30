@@ -3,25 +3,29 @@ package com.tamaleslechona.tamaleslechona.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-
+import com.tamaleslechona.tamaleslechona.model.RefreshToken;
 import com.tamaleslechona.tamaleslechona.dto.LoginResponse;
 import com.tamaleslechona.tamaleslechona.exception.CredencialesInvalidasException;
 import com.tamaleslechona.tamaleslechona.exception.RecursoNoEncontradoException;
 import com.tamaleslechona.tamaleslechona.model.Cliente;
 import com.tamaleslechona.tamaleslechona.model.Empleado;
+import com.tamaleslechona.tamaleslechona.model.RefreshToken;
 import com.tamaleslechona.tamaleslechona.model.Usuario;
 import com.tamaleslechona.tamaleslechona.repository.UsuarioRepository;
 import com.tamaleslechona.tamaleslechona.security.JwtService;
+import com.tamaleslechona.tamaleslechona.security.RefreshTokenService;
 
 @Service
 public class UsuarioService {
 
     private final UsuarioRepository repo;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
-    public UsuarioService(UsuarioRepository repo, JwtService jwtService) {
+    public UsuarioService(UsuarioRepository repo, JwtService jwtService, RefreshTokenService refreshTokenService) {
         this.repo = repo;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     public Usuario registrar(Usuario u) {
@@ -83,6 +87,7 @@ public class UsuarioService {
         Usuario u = buscarPorId(id);
         u.cambiarContrasena(actualPlano, nuevaPlano);
         repo.save(u);
+        refreshTokenService.revocarTodosDeUsuario(u);
     }
 
     public void desactivar(int id) {
@@ -102,7 +107,21 @@ public class UsuarioService {
             throw new CredencialesInvalidasException("Correo o contraseña incorrectos.");
         }
         String token = jwtService.generarToken(u);
-        return LoginResponse.desde(u, token);
+        String refreshToken = refreshTokenService.crear(u).getToken();
+        return LoginResponse.desde(u, token, refreshToken);
+    }
+
+    // Recibe un refresh token vigente, lo rota y devuelve un access token
+    // fresco junto con el refresh token nuevo.
+    public LoginResponse refrescarSesion(String refreshTokenRecibido) {
+        RefreshToken nuevo = refreshTokenService.validarYRotar(refreshTokenRecibido);
+        Usuario u = nuevo.getUsuario();
+        String token = jwtService.generarToken(u);
+        return LoginResponse.desde(u, token, nuevo.getToken());
+    }
+
+    public void cerrarSesion(String refreshToken) {
+        refreshTokenService.revocar(refreshToken);
     }
 
     private void validarDatosBasicos(Usuario u) {
