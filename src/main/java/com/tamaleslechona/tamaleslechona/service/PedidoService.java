@@ -3,9 +3,12 @@ package com.tamaleslechona.tamaleslechona.service;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tamaleslechona.tamaleslechona.client.NotificacionClient;
 import com.tamaleslechona.tamaleslechona.dto.DetallePedidoRequest;
 import com.tamaleslechona.tamaleslechona.exception.RecursoNoEncontradoException;
 import com.tamaleslechona.tamaleslechona.model.Cliente;
@@ -28,15 +31,20 @@ public class PedidoService {
     // inventario (AuditoriaInventario, AlertaStock) sin duplicar esa lógica.
     private final MovimientoInventarioService movimientoService;
 
+    private static final Logger log = LoggerFactory.getLogger(PedidoService.class);
+    private final NotificacionClient notificacionClient;
+
     public PedidoService(
             PedidoRepository repo,
             UsuarioService usuarioService,
             ProductoService productoService,
-            MovimientoInventarioService movimientoService) {
+            MovimientoInventarioService movimientoService,
+            NotificacionClient notificacionClient) {
         this.repo = repo;
         this.usuarioService = usuarioService;
         this.productoService = productoService;
         this.movimientoService = movimientoService;
+        this.notificacionClient = notificacionClient;
     }
 
     @Transactional
@@ -116,7 +124,19 @@ public class PedidoService {
         }
 
         pedido.setEstado(nuevoEstado);
-        return repo.save(pedido);
+        Pedido guardado = repo.save(pedido);
+
+        // Efecto secundario (best effort): si el microservicio de notificaciones
+        // falla o no esta disponible, el cambio de estado ya quedo guardado.
+        try {
+            notificacionClient.notificarCambioEstado(
+                    guardado.getIdPedido(),
+                    guardado.getCliente().getCorreo(),
+                    guardado.getEstado().name());
+        } catch (Exception e) {
+            log.warn("No se pudo notificar el pedido #{}: {}", guardado.getIdPedido(), e.getMessage());
+        }
+        return guardado;
     }
 
     @Transactional
