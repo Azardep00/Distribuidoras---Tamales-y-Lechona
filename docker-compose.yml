@@ -13,9 +13,17 @@ services:
     container_name: kafka-tamales
     ports:
       - "9092:9092"
+    # Los mensajes viven en un volumen, no adentro del contenedor. Asi un
+    # "docker compose down" no los borra.
+    volumes:
+      - kafka-datos:/var/lib/kafka/data
     environment:
       # Un solo nodo que hace de broker y de controller (KRaft).
       KAFKA_NODE_ID: 1
+      # Carpeta de datos de Kafka. Se declara explicita a proposito para que
+      # no dependa del valor por defecto de la imagen y no pueda quedar
+      # desincronizada con el volumen de mas abajo.
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
@@ -31,3 +39,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 10
+
+volumes:
+  # Datos de Kafka (los mensajes). "docker compose down" conserva este
+  # volumen; "docker compose down -v" lo borra.
+  kafka-datos:
