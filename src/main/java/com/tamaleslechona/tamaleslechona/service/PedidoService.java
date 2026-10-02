@@ -1,15 +1,19 @@
 package com.tamaleslechona.tamaleslechona.service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tamaleslechona.tamaleslechona.client.NotificacionClient;
 import com.tamaleslechona.tamaleslechona.dto.DetallePedidoRequest;
+import com.tamaleslechona.tamaleslechona.event.PedidoEstadoEvent;
+import com.tamaleslechona.tamaleslechona.event.PedidoEventPublisher;
 import com.tamaleslechona.tamaleslechona.exception.RecursoNoEncontradoException;
 import com.tamaleslechona.tamaleslechona.model.Cliente;
 import com.tamaleslechona.tamaleslechona.model.DetallePedido;
@@ -33,18 +37,26 @@ public class PedidoService {
 
     private static final Logger log = LoggerFactory.getLogger(PedidoService.class);
     private final NotificacionClient notificacionClient;
+    private final PedidoEventPublisher pedidoEventPublisher;
+
+    // Interruptor del transporte de notificaciones. En false (por defecto) se
+    // notifica por REST como siempre; en true se publica un evento en Kafka.
+    @Value("${notificaciones.kafka.habilitado:false}")
+    private boolean kafkaHabilitado;
 
     public PedidoService(
             PedidoRepository repo,
             UsuarioService usuarioService,
             ProductoService productoService,
             MovimientoInventarioService movimientoService,
-            NotificacionClient notificacionClient) {
+            NotificacionClient notificacionClient,
+            PedidoEventPublisher pedidoEventPublisher) {
         this.repo = repo;
         this.usuarioService = usuarioService;
         this.productoService = productoService;
         this.movimientoService = movimientoService;
         this.notificacionClient = notificacionClient;
+        this.pedidoEventPublisher = pedidoEventPublisher;
     }
 
     @Transactional
@@ -126,15 +138,27 @@ public class PedidoService {
         pedido.setEstado(nuevoEstado);
         Pedido guardado = repo.save(pedido);
 
-        // Efecto secundario (best effort): si el microservicio de notificaciones
-        // falla o no esta disponible, el cambio de estado ya quedo guardado.
-        try {
-            notificacionClient.notificarCambioEstado(
+        // Efecto secundario. Dos caminos segun configuracion:
+        //  - Kafka (notificaciones.kafka.habilitado=true): se publica un evento
+        //    y el consumidor decide cuando procesarlo.
+        //  - REST (por defecto): se llama al microservicio como siempre.
+        if (kafkaHabilitado) {
+            pedidoEventPublisher.publicar(new PedidoEstadoEvent(
                     guardado.getIdPedido(),
                     guardado.getCliente().getCorreo(),
-                    guardado.getEstado().name());
-        } catch (Exception e) {
-            log.warn("No se pudo notificar el pedido #{}: {}", guardado.getIdPedido(), e.getMessage());
+                    guardado.getEstado().name(),
+                    Instant.now()));
+        } else {
+            // Best effort: si el microservicio de notificaciones falla o no
+            // esta disponible, el cambio de estado ya quedo guardado.
+            try {
+                notificacionClient.notificarCambioEstado(
+                        guardado.getIdPedido(),
+                        guardado.getCliente().getCorreo(),
+                        guardado.getEstado().name());
+            } catch (Exception e) {
+                log.warn("No se pudo notificar el pedido #{}: {}", guardado.getIdPedido(), e.getMessage());
+            }
         }
         return guardado;
     }
