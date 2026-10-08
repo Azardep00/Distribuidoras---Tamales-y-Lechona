@@ -15,6 +15,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 @Entity
 public class Pedido {
@@ -39,6 +41,9 @@ public class Pedido {
     private List<DetallePedido> detalles = new ArrayList<>();
 
     private BigDecimal total;
+
+    @Transient
+    private EstadoPagoWompi estadoPagoWompi;
 
     protected Pedido() {
         // requerido por JPA
@@ -84,5 +89,14 @@ public class Pedido {
 
     public BigDecimal getTotal() {
         return total;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public EstadoPagoWompi getEstadoPagoWompi() {
+        return estadoPagoWompi;
+    }
+
+    public void setEstadoPagoWompi(EstadoPagoWompi estadoPagoWompi) {
+        this.estadoPagoWompi = estadoPagoWompi;
     }
 }

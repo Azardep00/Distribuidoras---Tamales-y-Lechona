@@ -2,7 +2,9 @@ package com.tamaleslechona.tamaleslechona.service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,16 +19,20 @@ import com.tamaleslechona.tamaleslechona.event.PedidoEventPublisher;
 import com.tamaleslechona.tamaleslechona.exception.RecursoNoEncontradoException;
 import com.tamaleslechona.tamaleslechona.model.Cliente;
 import com.tamaleslechona.tamaleslechona.model.DetallePedido;
+import com.tamaleslechona.tamaleslechona.model.EstadoPagoWompi;
 import com.tamaleslechona.tamaleslechona.model.EstadoPedido;
+import com.tamaleslechona.tamaleslechona.model.PagoWompi;
 import com.tamaleslechona.tamaleslechona.model.Pedido;
 import com.tamaleslechona.tamaleslechona.model.Producto;
 import com.tamaleslechona.tamaleslechona.model.Usuario;
 import com.tamaleslechona.tamaleslechona.repository.PedidoRepository;
+import com.tamaleslechona.tamaleslechona.repository.PagoWompiRepository;
 
 @Service
 public class PedidoService {
 
     private final PedidoRepository repo;
+    private final PagoWompiRepository pagoWompiRepo;
     private final UsuarioService usuarioService;
     private final ProductoService productoService;
 
@@ -46,12 +52,14 @@ public class PedidoService {
 
     public PedidoService(
             PedidoRepository repo,
+            PagoWompiRepository pagoWompiRepo,
             UsuarioService usuarioService,
             ProductoService productoService,
             MovimientoInventarioService movimientoService,
             NotificacionClient notificacionClient,
             PedidoEventPublisher pedidoEventPublisher) {
         this.repo = repo;
+        this.pagoWompiRepo = pagoWompiRepo;
         this.usuarioService = usuarioService;
         this.productoService = productoService;
         this.movimientoService = movimientoService;
@@ -100,16 +108,18 @@ public class PedidoService {
     }
 
     public List<Pedido> listar() {
-        return repo.findAll();
+        return incluirEstadoPagoWompi(repo.findAll());
     }
 
     public Pedido buscarPorId(int id) {
-        return repo.findById(id)
+        Pedido pedido = repo.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Pedido no encontrado."));
+        incluirEstadoPagoWompi(List.of(pedido));
+        return pedido;
     }
 
     public List<Pedido> listarPorCliente(int idCliente) {
-        return repo.findByCliente_IdUsuario(idCliente);
+        return incluirEstadoPagoWompi(repo.findByCliente_IdUsuario(idCliente));
     }
 
     public List<Pedido> listarPorEstado(EstadoPedido estado) {
@@ -128,6 +138,12 @@ public class PedidoService {
         }
         if (nuevoEstado == EstadoPedido.CANCELADO) {
             throw new IllegalArgumentException("Para cancelar un pedido usa DELETE /api/pedidos/{id}.");
+        }
+        if (nuevoEstado == EstadoPedido.CONFIRMADO
+                && tienePagoWompi(pedido)
+                && !pagoWompiRepo.existsByPedido_IdPedidoAndEstado(
+                        id, EstadoPagoWompi.APPROVED)) {
+            throw new IllegalArgumentException("El pedido solo se puede confirmar cuando Wompi apruebe el pago.");
         }
 
         EstadoPedido siguiente = siguienteEstado(actual);
@@ -167,6 +183,12 @@ public class PedidoService {
     public void cancelar(int id) {
         Pedido pedido = buscarPorId(id);
 
+        if (pagoWompiRepo.existsByPedido_IdPedidoAndEstadoIn(id, List.of(
+                EstadoPagoWompi.PENDING,
+                EstadoPagoWompi.APPROVED))) {
+            throw new IllegalArgumentException(
+                    "No se puede cancelar un pago Wompi pendiente o aprobado. Gestiona primero el pago o su reembolso.");
+        }
         if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
             throw new IllegalArgumentException("Un pedido ya entregado no se puede cancelar.");
         }
@@ -205,5 +227,36 @@ public class PedidoService {
             case EN_PREPARACION -> EstadoPedido.ENTREGADO;
             default -> null;
         };
+    }
+
+    private boolean tienePagoWompi(Pedido pedido) {
+        return pagoWompiRepo.existsByPedido_IdPedidoAndEstadoIn(
+                pedido.getIdPedido(),
+                List.of(
+                        EstadoPagoWompi.PENDING,
+                        EstadoPagoWompi.APPROVED,
+                        EstadoPagoWompi.DECLINED,
+                        EstadoPagoWompi.VOIDED,
+                        EstadoPagoWompi.ERROR));
+    }
+
+    private List<Pedido> incluirEstadoPagoWompi(List<Pedido> pedidos) {
+        if (pedidos.isEmpty()) return pedidos;
+
+        List<Integer> idsPedido = pedidos.stream().map(Pedido::getIdPedido).toList();
+        Map<Integer, PagoWompi> pagosRecientes = new HashMap<>();
+        for (var pago : pagoWompiRepo.findByPedido_IdPedidoIn(idsPedido)) {
+            pagosRecientes.merge(
+                    pago.getPedido().getIdPedido(),
+                    pago,
+                    (anterior, actual) -> anterior.getIdPagoWompi() > actual.getIdPagoWompi()
+                            ? anterior
+                            : actual);
+        }
+        for (Pedido pedido : pedidos) {
+            var pago = pagosRecientes.get(pedido.getIdPedido());
+            if (pago != null) pedido.setEstadoPagoWompi(pago.getEstado());
+        }
+        return pedidos;
     }
 }
