@@ -25,7 +25,7 @@ public class IntegracionController {
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body("Servicio de clima no disponible");
+                    .body(java.util.Map.of("mensaje", "Servicio de clima no disponible"));
         }
     }
 }

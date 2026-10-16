@@ -1,5 +1,6 @@
 package com.tamaleslechona.tamaleslechona.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -60,6 +61,7 @@ public class UsuarioService {
         if (nuevo.getNombre() == null || nuevo.getNombre().isBlank()) {
             throw new IllegalArgumentException("El nombre es obligatorio.");
         }
+        validarFechaNacimiento(nuevo);
         if (!actual.getCorreo().equalsIgnoreCase(nuevo.getCorreo())
                 && repo.existsByCorreoIgnoreCase(nuevo.getCorreo())) {
             throw new IllegalArgumentException("Ya existe un usuario registrado con ese correo.");
@@ -130,6 +132,27 @@ public class UsuarioService {
         }
         if (u.getCorreo() == null || u.getCorreo().isBlank()) {
             throw new IllegalArgumentException("El correo es obligatorio.");
+        }
+        validarFechaNacimiento(u);
+    }
+
+    // Edad minima: 12 anos para clientes, 18 para empleados. Tambien se rechaza
+    // una fecha futura o absurdamente antigua (antes de 1900).
+    private void validarFechaNacimiento(Usuario u) {
+        LocalDate f = u.getFechaNacimiento();
+        if (f == null) {
+            return;
+        }
+        LocalDate hoy = LocalDate.now();
+        if (f.isAfter(hoy)) {
+            throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura.");
+        }
+        if (f.isBefore(LocalDate.of(1900, 1, 1))) {
+            throw new IllegalArgumentException("La fecha de nacimiento no es válida.");
+        }
+        int edadMinima = (u instanceof Empleado) ? 18 : 12;
+        if (f.isAfter(hoy.minusYears(edadMinima))) {
+            throw new IllegalArgumentException("Debes tener al menos " + edadMinima + " años.");
         }
     }
 }
