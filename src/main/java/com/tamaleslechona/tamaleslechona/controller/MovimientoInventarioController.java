@@ -22,10 +22,10 @@ public class MovimientoInventarioController {
         this.service = service;
     }
 
-    // Filtros opcionales: /api/movimientos?idProducto=1  o  /api/movimientos?tipo=SALIDA
+    // Filtros opcionales: /api/movimientos?idProducto=<id>  o  /api/movimientos?tipo=SALIDA
     @GetMapping
     public List<MovimientoInventario> listar(
-            @RequestParam(required = false) Integer idProducto,
+            @RequestParam(required = false) String idProducto,
             @RequestParam(required = false) TipoMovimiento tipo) {
         if (idProducto != null) return service.listarPorProducto(idProducto);
         if (tipo != null) return service.listarPorTipo(tipo);
@@ -33,7 +33,7 @@ public class MovimientoInventarioController {
     }
 
     @GetMapping("/{id}")
-    public MovimientoInventario buscarPorId(@PathVariable int id) {
+    public MovimientoInventario buscarPorId(@PathVariable String id) {
         return service.buscarPorId(id);
     }
 

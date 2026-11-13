@@ -1,3 +1,3 @@
 package com.tamaleslechona.tamaleslechona.dto;
 
-public record DetallePedidoRequest(Integer idProducto, int cantidad) {}
+public record DetallePedidoRequest(String idProducto, int cantidad) {}

@@ -34,14 +34,14 @@ public class WompiPaymentController {
             @RequestBody PedidoRequest body, Authentication auth) {
         validarCliente(auth);
         WompiCheckoutResponse respuesta = service.crearCheckout(
-                Integer.parseInt(auth.getName()), body.detalles());
+                auth.getName(), body.detalles());
         return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
     }
 
     @PostMapping("/pedidos/{idPedido}/intentos")
-    public WompiCheckoutResponse reintentarPago(@PathVariable int idPedido, Authentication auth) {
+    public WompiCheckoutResponse reintentarPago(@PathVariable String idPedido, Authentication auth) {
         validarCliente(auth);
-        return service.crearIntentoParaPedido(idPedido, Integer.parseInt(auth.getName()));
+        return service.crearIntentoParaPedido(idPedido, auth.getName());
     }
 
     @GetMapping("/transacciones/{idTransaccion}")
@@ -50,7 +50,7 @@ public class WompiPaymentController {
             @RequestParam String referencia,
             Authentication auth) {
         return service.consultarTransaccion(
-                idTransaccion, referencia, Integer.parseInt(auth.getName()));
+                idTransaccion, referencia, auth.getName());
     }
 
     @PostMapping("/eventos")

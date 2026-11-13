@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,16 +54,14 @@ public class WompiPaymentService {
         this.eventsSecret = eventsSecret;
     }
 
-    @Transactional
-    public WompiCheckoutResponse crearCheckout(int idCliente, List<DetallePedidoRequest> detalles) {
+    public WompiCheckoutResponse crearCheckout(String idCliente, List<DetallePedidoRequest> detalles) {
         exigirConfiguracionWompi();
 
         Pedido pedido = pedidoService.crear(idCliente, detalles);
         return crearIntento(pedido);
     }
 
-    @Transactional
-    public WompiCheckoutResponse crearIntentoParaPedido(int idPedido, int idCliente) {
+    public WompiCheckoutResponse crearIntentoParaPedido(String idPedido, String idCliente) {
         exigirConfiguracionWompi();
         Pedido pedido = pedidoRepository.findById(idPedido)
                 .orElseThrow(() -> new IllegalArgumentException("No existe el pedido indicado."));
@@ -75,7 +72,7 @@ public class WompiPaymentService {
         }
 
         PagoWompi ultimoPago = pagoRepository
-                .findFirstByPedido_IdPedidoOrderByIdPagoWompiDesc(idPedido)
+                .findFirstByIdPedidoOrderByIdPagoWompiDesc(idPedido)
                 .orElse(null);
         if (ultimoPago != null && ultimoPago.getEstado() == EstadoPagoWompi.APPROVED) {
             throw new IllegalArgumentException("El pedido ya tiene un pago aprobado.");
@@ -98,14 +95,13 @@ public class WompiPaymentService {
         return crearRespuestaCheckout(pago);
     }
 
-    @Transactional
     public WompiEstadoPagoResponse consultarTransaccion(
-            String idTransaccion, String referencia, int idCliente) {
+            String idTransaccion, String referencia, String idCliente) {
         validarIdTransaccion(idTransaccion);
 
         PagoWompi pago = pagoRepository.findFirstByReferencia(referencia)
                 .orElseThrow(() -> new IllegalArgumentException("No existe un pago con esa referencia."));
-        validarPropietario(pago.getPedido(), idCliente);
+        validarPropietario(pedidoDe(pago), idCliente);
         JsonNode transaccion = consultarEnWompi(idTransaccion);
 
         pago = pagoRepository.buscarPorReferenciaParaActualizar(referencia)
@@ -113,7 +109,6 @@ public class WompiPaymentService {
         return aplicarTransaccion(pago, transaccion);
     }
 
-    @Transactional
     public void recibirEvento(JsonNode evento, String checksumHeader) {
         exigirConfiguracion(eventsSecret, "WOMPI_EVENTS_SECRET");
         WompiEventSignature.validar(evento, checksumHeader, eventsSecret);
@@ -139,7 +134,7 @@ public class WompiPaymentService {
     private WompiCheckoutResponse crearRespuestaCheckout(PagoWompi pago) {
         String cadena = pago.getReferencia() + pago.getMontoEnCentavos() + pago.getMoneda() + integritySecret;
         return new WompiCheckoutResponse(
-                pago.getPedido().getIdPedido(),
+                pago.getIdPedido(),
                 pago.getReferencia(),
                 pago.getMontoEnCentavos(),
                 pago.getMoneda(),
@@ -170,9 +165,10 @@ public class WompiPaymentService {
             pagoRepository.save(pago);
         }
 
-        Pedido pedido = pago.getPedido();
+        Pedido pedido = pedidoDe(pago);
         if (nuevoEstado == EstadoPagoWompi.APPROVED && pedido.getEstado() == EstadoPedido.PENDIENTE) {
-            pedidoService.cambiarEstado(pedido.getIdPedido(), EstadoPedido.CONFIRMADO);
+            // cambiarEstado devuelve el pedido actualizado (el objeto anterior queda desfasado).
+            pedido = pedidoService.cambiarEstado(pedido.getIdPedido(), EstadoPedido.CONFIRMADO);
         } else if (nuevoEstado == EstadoPagoWompi.APPROVED && pedido.getEstado() != EstadoPedido.CONFIRMADO) {
             throw new IllegalArgumentException("El pedido no puede confirmarse desde su estado actual.");
         }
@@ -212,8 +208,14 @@ public class WompiPaymentService {
         }
     }
 
-    private void validarPropietario(Pedido pedido, int idCliente) {
-        if (pedido.getCliente().getIdUsuario() != idCliente) {
+    // El pago solo guarda el id del pedido: se carga el pedido cuando hace falta.
+    private Pedido pedidoDe(PagoWompi pago) {
+        return pedidoRepository.findById(pago.getIdPedido())
+                .orElseThrow(() -> new IllegalArgumentException("No existe el pedido del pago."));
+    }
+
+    private void validarPropietario(Pedido pedido, String idCliente) {
+        if (!pedido.getIdCliente().equals(idCliente)) {
             throw new org.springframework.security.access.AccessDeniedException(
                     "Este pago no pertenece al cliente autenticado.");
         }

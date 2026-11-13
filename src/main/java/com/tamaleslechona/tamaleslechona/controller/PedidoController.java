@@ -24,19 +24,19 @@ public class PedidoController {
         this.service = service;
     }
 
-    // Filtros opcionales: /api/pedidos?idCliente=1  o  /api/pedidos?estado=PENDIENTE
+    // Filtros opcionales: /api/pedidos?idCliente=<id>  o  /api/pedidos?estado=PENDIENTE
     //
     // Un Cliente solo puede pedir SUS PROPIOS pedidos (idCliente debe ser el
     // suyo), y no puede pedir el listado completo sin filtrar — eso es vista
     // de administración. Un Empleado puede pedir lo que quiera.
     @GetMapping
     public List<Pedido> listar(
-            @RequestParam(required = false) Integer idCliente,
+            @RequestParam(required = false) String idCliente,
             @RequestParam(required = false) EstadoPedido estado,
             Authentication auth) {
 
         if (!esEmpleado(auth)) {
-            if (idCliente == null || idCliente != idAutenticado(auth)) {
+            if (idCliente == null || !idCliente.equals(idAutenticado(auth))) {
                 throw new AccessDeniedException("Solo puedes ver tus propios pedidos.");
             }
         }
@@ -47,7 +47,7 @@ public class PedidoController {
     }
 
     @GetMapping("/{id}")
-    public Pedido buscarPorId(@PathVariable int id, Authentication auth) {
+    public Pedido buscarPorId(@PathVariable String id, Authentication auth) {
         Pedido pedido = service.buscarPorId(id);
         verificarEsDuenoOEmpleado(pedido, auth);
         return pedido;
@@ -58,13 +58,13 @@ public class PedidoController {
     // crear un pedido a nombre de otro con solo cambiar un número en la petición.
     @PostMapping
     public ResponseEntity<Pedido> crear(@RequestBody PedidoRequest body, Authentication auth) {
-        int idCliente = esEmpleado(auth) ? body.idCliente() : idAutenticado(auth);
+        String idCliente = esEmpleado(auth) ? body.idCliente() : idAutenticado(auth);
         Pedido creado = service.crear(idCliente, body.detalles());
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @PatchMapping("/{id}/estado")
-    public Pedido cambiarEstado(@PathVariable int id, @RequestBody CambiarEstadoPedidoRequest body) {
+    public Pedido cambiarEstado(@PathVariable String id, @RequestBody CambiarEstadoPedidoRequest body) {
         // Ya protegido a nivel de ruta en SecurityConfig (solo ROLE_EMPLEADO
         // llega hasta acá), no hace falta repetir el chequeo aquí.
         return service.cambiarEstado(id, body.estado());
@@ -72,7 +72,7 @@ public class PedidoController {
 
     // Cancela el pedido y devuelve el stock descontado (no borra el registro).
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelar(@PathVariable int id, Authentication auth) {
+    public ResponseEntity<Void> cancelar(@PathVariable String id, Authentication auth) {
         Pedido pedido = service.buscarPorId(id);
         verificarEsDuenoOEmpleado(pedido, auth);
         service.cancelar(id);
@@ -81,7 +81,7 @@ public class PedidoController {
 
     private void verificarEsDuenoOEmpleado(Pedido pedido, Authentication auth) {
         if (esEmpleado(auth)) return;
-        if (pedido.getCliente().getIdUsuario() != idAutenticado(auth)) {
+        if (!pedido.getIdCliente().equals(idAutenticado(auth))) {
             throw new AccessDeniedException("Este pedido no te pertenece.");
         }
     }
@@ -92,7 +92,7 @@ public class PedidoController {
 
     // El JwtAuthenticationFilter guarda el idUsuario como subject del token
     // (claims.getSubject()), que es lo que Authentication#getName() expone aquí.
-    private int idAutenticado(Authentication auth) {
-        return Integer.parseInt(auth.getName());
+    private String idAutenticado(Authentication auth) {
+        return auth.getName();
     }
 }

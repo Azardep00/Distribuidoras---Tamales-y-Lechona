@@ -2,6 +2,7 @@ package com.tamaleslechona.tamaleslechona.service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.tamaleslechona.tamaleslechona.client.NotificacionClient;
 import com.tamaleslechona.tamaleslechona.dto.DetallePedidoRequest;
@@ -67,8 +67,10 @@ public class PedidoService {
         this.pedidoEventPublisher = pedidoEventPublisher;
     }
 
-    @Transactional
-    public Pedido crear(Integer idCliente, List<DetallePedidoRequest> detallesReq) {
+    // Mongo no usa transacciones aquí (en local no hay replica set): el stock se
+    // descuenta producto a producto con operaciones atómicas ($inc) y, si algo
+    // falla a mitad de camino, se devuelve lo ya descontado y se borra el pedido.
+    public Pedido crear(String idCliente, List<DetallePedidoRequest> detallesReq) {
         if (idCliente == null) {
             throw new IllegalArgumentException("El id del cliente es obligatorio.");
         }
@@ -92,34 +94,50 @@ public class PedidoService {
         }
 
         Pedido pedido = repo.save(new Pedido(cliente));
+        List<DetallePedidoRequest> descontados = new ArrayList<>();
 
-        for (DetallePedidoRequest d : detallesReq) {
-            Producto producto = productoService.buscarPorId(d.idProducto());
-            BigDecimal precioUnitario = producto.getPrecio();
+        try {
+            for (DetallePedidoRequest d : detallesReq) {
+                Producto producto = productoService.buscarPorId(d.idProducto());
+                BigDecimal precioUnitario = producto.getPrecio();
 
-            // Descuenta el stock y deja el registro de salida correspondiente.
-            movimientoService.registrarSalida(
-                    d.idProducto(), d.cantidad(), "Venta - Pedido #" + pedido.getIdPedido());
+                // Descuenta el stock (atómico) y deja el registro de salida.
+                movimientoService.registrarSalida(
+                        d.idProducto(), d.cantidad(), "Venta - Pedido #" + pedido.getIdPedido());
+                descontados.add(d);
 
-            pedido.agregarDetalle(new DetallePedido(producto, d.cantidad(), precioUnitario));
+                pedido.agregarDetalle(new DetallePedido(producto, d.cantidad(), precioUnitario));
+            }
+            return repo.save(pedido);
+        } catch (RuntimeException e) {
+            // Compensación: devolver lo ya descontado y eliminar el pedido a medias.
+            for (DetallePedidoRequest d : descontados) {
+                try {
+                    movimientoService.registrarReversion(
+                            d.idProducto(), d.cantidad(),
+                            "Compensación - falló el pedido #" + pedido.getIdPedido());
+                } catch (RuntimeException ex) {
+                    log.error("No se pudo devolver stock del producto {}: {}", d.idProducto(), ex.getMessage());
+                }
+            }
+            repo.deleteById(pedido.getIdPedido());
+            throw e;
         }
-
-        return repo.save(pedido);
     }
 
     public List<Pedido> listar() {
         return incluirEstadoPagoWompi(repo.findAll());
     }
 
-    public Pedido buscarPorId(int id) {
+    public Pedido buscarPorId(String id) {
         Pedido pedido = repo.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Pedido no encontrado."));
         incluirEstadoPagoWompi(List.of(pedido));
         return pedido;
     }
 
-    public List<Pedido> listarPorCliente(int idCliente) {
-        return incluirEstadoPagoWompi(repo.findByCliente_IdUsuario(idCliente));
+    public List<Pedido> listarPorCliente(String idCliente) {
+        return incluirEstadoPagoWompi(repo.findByIdCliente(idCliente));
     }
 
     public List<Pedido> listarPorEstado(EstadoPedido estado) {
@@ -129,7 +147,7 @@ public class PedidoService {
     // Solo permite avanzar un paso dentro de la secuencia normal
     // (PENDIENTE -> CONFIRMADO -> EN_PREPARACION -> ENTREGADO); ni saltar
     // estados ni retroceder. Cancelar tiene su propio método/endpoint.
-    public Pedido cambiarEstado(int id, EstadoPedido nuevoEstado) {
+    public Pedido cambiarEstado(String id, EstadoPedido nuevoEstado) {
         Pedido pedido = buscarPorId(id);
         EstadoPedido actual = pedido.getEstado();
 
@@ -141,7 +159,7 @@ public class PedidoService {
         }
         if (nuevoEstado == EstadoPedido.CONFIRMADO
                 && tienePagoWompi(pedido)
-                && !pagoWompiRepo.existsByPedido_IdPedidoAndEstado(
+                && !pagoWompiRepo.existsByIdPedidoAndEstado(
                         id, EstadoPagoWompi.APPROVED)) {
             throw new IllegalArgumentException("El pedido solo se puede confirmar cuando Wompi apruebe el pago.");
         }
@@ -161,7 +179,7 @@ public class PedidoService {
         if (kafkaHabilitado) {
             pedidoEventPublisher.publicar(new PedidoEstadoEvent(
                     guardado.getIdPedido(),
-                    guardado.getCliente().getCorreo(),
+                    guardado.getCorreoCliente(),
                     guardado.getEstado().name(),
                     Instant.now()));
         } else {
@@ -170,7 +188,7 @@ public class PedidoService {
             try {
                 notificacionClient.notificarCambioEstado(
                         guardado.getIdPedido(),
-                        guardado.getCliente().getCorreo(),
+                        guardado.getCorreoCliente(),
                         guardado.getEstado().name());
             } catch (Exception e) {
                 log.warn("No se pudo notificar el pedido #{}: {}", guardado.getIdPedido(), e.getMessage());
@@ -179,11 +197,10 @@ public class PedidoService {
         return guardado;
     }
 
-    @Transactional
-    public void cancelar(int id) {
+    public void cancelar(String id) {
         Pedido pedido = buscarPorId(id);
 
-        if (pagoWompiRepo.existsByPedido_IdPedidoAndEstadoIn(id, List.of(
+        if (pagoWompiRepo.existsByIdPedidoAndEstadoIn(id, List.of(
                 EstadoPagoWompi.PENDING,
                 EstadoPagoWompi.APPROVED))) {
             throw new IllegalArgumentException(
@@ -200,7 +217,7 @@ public class PedidoService {
         // dejando también el registro de reversión correspondiente.
         for (DetallePedido detalle : pedido.getDetalles()) {
             movimientoService.registrarReversion(
-                    detalle.getProducto().getIdProducto(),
+                    detalle.getIdProducto(),
                     detalle.getCantidad(),
                     "Cancelación - Pedido #" + pedido.getIdPedido());
         }
@@ -209,7 +226,7 @@ public class PedidoService {
         repo.save(pedido);
     }
 
-    private Cliente buscarCliente(int idCliente) {
+    private Cliente buscarCliente(String idCliente) {
         Usuario usuario = usuarioService.buscarPorId(idCliente);
         if (!(usuario instanceof Cliente cliente)) {
             throw new IllegalArgumentException("El usuario indicado no es un cliente.");
@@ -230,7 +247,7 @@ public class PedidoService {
     }
 
     private boolean tienePagoWompi(Pedido pedido) {
-        return pagoWompiRepo.existsByPedido_IdPedidoAndEstadoIn(
+        return pagoWompiRepo.existsByIdPedidoAndEstadoIn(
                 pedido.getIdPedido(),
                 List.of(
                         EstadoPagoWompi.PENDING,
@@ -243,13 +260,14 @@ public class PedidoService {
     private List<Pedido> incluirEstadoPagoWompi(List<Pedido> pedidos) {
         if (pedidos.isEmpty()) return pedidos;
 
-        List<Integer> idsPedido = pedidos.stream().map(Pedido::getIdPedido).toList();
-        Map<Integer, PagoWompi> pagosRecientes = new HashMap<>();
-        for (var pago : pagoWompiRepo.findByPedido_IdPedidoIn(idsPedido)) {
+        List<String> idsPedido = pedidos.stream().map(Pedido::getIdPedido).toList();
+        Map<String, PagoWompi> pagosRecientes = new HashMap<>();
+        for (var pago : pagoWompiRepo.findByIdPedidoIn(idsPedido)) {
+            // Los ObjectId crecen con el tiempo: el mayor es el pago más reciente.
             pagosRecientes.merge(
-                    pago.getPedido().getIdPedido(),
+                    pago.getIdPedido(),
                     pago,
-                    (anterior, actual) -> anterior.getIdPagoWompi() > actual.getIdPagoWompi()
+                    (anterior, actual) -> anterior.getIdPagoWompi().compareTo(actual.getIdPagoWompi()) > 0
                             ? anterior
                             : actual);
         }

@@ -37,13 +37,13 @@ public class MovimientoInventarioService {
     }
 
     public MovimientoInventario registrarEntrada(
-            int idProducto, int idProveedor, int cantidad, String motivo) {
+            String idProducto, String idProveedor, int cantidad, String motivo) {
         validarCantidad(cantidad);
-        Producto producto = productoService.buscarPorId(idProducto);
+        productoService.buscarPorId(idProducto); // 404 si no existe
         Proveedor proveedor = proveedorService.buscarPorId(idProveedor);
 
-        producto.aumentarStock(cantidad);
-        productoService.guardar(producto);
+        productoService.aumentarStockAtomico(idProducto, cantidad);
+        Producto producto = productoService.buscarPorId(idProducto); // ya con el stock nuevo
 
         MovimientoInventario m =
                 new MovimientoInventario(TipoMovimiento.ENTRADA, cantidad, motivo, producto, proveedor);
@@ -51,25 +51,27 @@ public class MovimientoInventarioService {
     }
 
     // Entrada sin proveedor asociado (por ejemplo, devolución de un pedido cancelado)
-    public MovimientoInventario registrarReversion(int idProducto, int cantidad, String motivo) {
+    public MovimientoInventario registrarReversion(String idProducto, int cantidad, String motivo) {
         validarCantidad(cantidad);
-        Producto producto = productoService.buscarPorId(idProducto);
+        productoService.buscarPorId(idProducto); // 404 si no existe
 
-        producto.aumentarStock(cantidad);
-        productoService.guardar(producto);
+        productoService.aumentarStockAtomico(idProducto, cantidad);
+        Producto producto = productoService.buscarPorId(idProducto);
 
         MovimientoInventario m =
                 new MovimientoInventario(TipoMovimiento.ENTRADA, cantidad, motivo, producto, null);
         return guardarYNotificar(m);
     }
 
-    public MovimientoInventario registrarSalida(int idProducto, int cantidad, String motivo) {
+    public MovimientoInventario registrarSalida(String idProducto, int cantidad, String motivo) {
         validarCantidad(cantidad);
-        Producto producto = productoService.buscarPorId(idProducto);
+        Producto antes = productoService.buscarPorId(idProducto); // 404 si no existe
 
-        // descontarStock ya valida disponibilidad y lanza IllegalArgumentException si no alcanza
-        producto.descontarStock(cantidad);
-        productoService.guardar(producto);
+        // Descuento atómico: solo resta si hay stock suficiente en ese instante.
+        if (!productoService.descontarStockAtomico(idProducto, cantidad)) {
+            throw new IllegalArgumentException("Stock insuficiente para " + antes.getNombre() + ".");
+        }
+        Producto producto = productoService.buscarPorId(idProducto);
 
         MovimientoInventario m =
                 new MovimientoInventario(TipoMovimiento.SALIDA, cantidad, motivo, producto, null);
@@ -80,13 +82,13 @@ public class MovimientoInventarioService {
         return repo.findAll();
     }
 
-    public MovimientoInventario buscarPorId(int id) {
+    public MovimientoInventario buscarPorId(String id) {
         return repo.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Movimiento no encontrado."));
     }
 
-    public List<MovimientoInventario> listarPorProducto(int idProducto) {
-        return repo.findByProducto_IdProducto(idProducto);
+    public List<MovimientoInventario> listarPorProducto(String idProducto) {
+        return repo.findByIdProducto(idProducto);
     }
 
     public List<MovimientoInventario> listarPorTipo(TipoMovimiento tipo) {

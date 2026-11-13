@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import orag.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -23,7 +23,7 @@ public class NotificacionClient {
                 .build();
     }
 
-    public void notificarCambioEstado(Integer idPedido, String correoCliente, String estadoNuevo) {
+    public void notificarCambioEstado(String idPedido, String correoCliente, String estadoNuevo) {
         restClient.post()
                 .uri("/notificaciones/pedido")
                 .body(Map.of(

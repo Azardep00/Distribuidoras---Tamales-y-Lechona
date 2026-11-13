@@ -18,11 +18,11 @@ public class PedidoEventPublisher {
 
     private static final Logger log = LoggerFactory.getLogger(PedidoEventPublisher.class);
 
-    private final KafkaTemplate<Integer, PedidoEstadoEvent> kafkaTemplate;
+    private final KafkaTemplate<String, PedidoEstadoEvent> kafkaTemplate;
     private final String topico;
 
     public PedidoEventPublisher(
-            KafkaTemplate<Integer, PedidoEstadoEvent> kafkaTemplate,
+            KafkaTemplate<String, PedidoEstadoEvent> kafkaTemplate,
             @Value("${notificaciones.kafka.topico:pedidos.estado-cambiado}") String topico) {
         this.kafkaTemplate = kafkaTemplate;
         this.topico = topico;
