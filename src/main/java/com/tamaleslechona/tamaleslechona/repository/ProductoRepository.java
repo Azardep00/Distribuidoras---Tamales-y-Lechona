@@ -2,13 +2,11 @@ package com.tamaleslechona.tamaleslechona.repository;
 
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.tamaleslechona.tamaleslechona.model.Producto;
 
-// JpaRepository ya trae save(), findById(), findAll(), deleteById(), etc.
-// Solo agregamos lo que no viene por defecto.
-public interface ProductoRepository extends JpaRepository<Producto, Integer> {
+public interface ProductoRepository extends MongoRepository<Producto, String> {
 
     List<Producto> findByEstadoTrue();
 

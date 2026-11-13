@@ -2,19 +2,9 @@ package com.tamaleslechona.tamaleslechona.model;
 
 import java.math.BigDecimal;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Column; 
-
-
-@Entity
 public class Lechona extends Producto {
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tamano_lechona")   
+  
     private TamanoLechona tamano;
-
     private int numeroPorciones;
 
     protected Lechona() {

@@ -1,22 +1,12 @@
-package com.tamaleslechona.tamaleslechona.model;
-
 import java.math.BigDecimal;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import jakarta.persistence.DiscriminatorColumn;
-import jakarta.persistence.DiscriminatorType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
 
-// JsonTypeInfo permite que, al convertir a JSON, se sepa si es un Tamal o una Lechona
-@Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "tipo_producto", discriminatorType = DiscriminatorType.STRING)
+@Document(collection = "productos")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tipoProducto")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Tamal.class, name = "Tamal"),
@@ -25,8 +15,7 @@ import jakarta.persistence.InheritanceType;
 public abstract class Producto {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idProducto;
+    private String idProducto;
 
     private String nombre;
     private String descripcion;
@@ -47,13 +36,8 @@ public abstract class Producto {
         this.estado = estado;
     }
 
-    public Integer getIdProducto() {
-        return idProducto;
-    }
-
-    public void setIdProducto(Integer v) {
-        idProducto = v;
-    }
+    public String getIdProducto() { return idProducto; }
+    public void setIdProducto(String v) { idProducto = v; }
 
     public String getNombre() {
         return nombre;
