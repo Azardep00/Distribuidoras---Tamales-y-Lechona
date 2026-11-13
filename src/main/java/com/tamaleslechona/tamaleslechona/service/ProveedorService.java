@@ -27,7 +27,7 @@ public class ProveedorService {
         return incluirInactivos ? repo.findAll() : repo.findByEstadoTrue();
     }
 
-    public Proveedor buscarPorId(int id) {
+    public Proveedor buscarPorId(String id) {
         return repo.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Proveedor no encontrado."));
     }
@@ -38,7 +38,7 @@ public class ProveedorService {
                 texto, texto, texto);
     }
 
-    public Proveedor actualizar(int id, Proveedor nuevo) {
+    public Proveedor actualizar(String id, Proveedor nuevo) {
         validar(nuevo.getNombre(), nuevo.getTelefono(), nuevo.getCorreo());
         Proveedor actual = buscarPorId(id);
         actual.setNombre(nuevo.getNombre());
@@ -48,7 +48,7 @@ public class ProveedorService {
         return repo.save(actual);
     }
 
-    public void desactivar(int id) {
+    public void desactivar(String id) {
         Proveedor p = buscarPorId(id);
         p.setEstado(false);
         repo.save(p);

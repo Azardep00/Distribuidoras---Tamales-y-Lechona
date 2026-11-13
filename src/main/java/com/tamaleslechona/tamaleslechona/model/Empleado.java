@@ -3,9 +3,7 @@ package com.tamaleslechona.tamaleslechona.model;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.Entity;
 
-@Entity
 public class Empleado extends Usuario {
 
     private String cargo;
@@ -14,7 +12,7 @@ public class Empleado extends Usuario {
     private LocalDate fechaContratacion;
 
     protected Empleado() {
-        // requerido por JPA
+        // requerido por Spring Data
     }
 
     public Empleado(

@@ -28,7 +28,7 @@ public class ProductoController {
     }
 
     @GetMapping("/{id}")
-    public Producto buscarPorId(@PathVariable int id) {
+    public Producto buscarPorId(@PathVariable String id) {
         return service.buscarPorId(id);
     }
 
@@ -50,12 +50,12 @@ public class ProductoController {
     }
 
     @PutMapping("/{id}")
-    public Producto actualizar(@PathVariable int id, @RequestBody Producto nuevo) {
+    public Producto actualizar(@PathVariable String id, @RequestBody Producto nuevo) {
         return service.actualizar(id, nuevo);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> desactivar(@PathVariable int id) {
+    public ResponseEntity<Void> desactivar(@PathVariable String id) {
         service.desactivar(id);
         return ResponseEntity.noContent().build();
     }

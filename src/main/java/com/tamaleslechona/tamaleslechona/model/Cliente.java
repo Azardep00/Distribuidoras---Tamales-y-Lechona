@@ -3,16 +3,11 @@ package com.tamaleslechona.tamaleslechona.model;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 
 // Nota: la relación con Pedido (lista de pedidos del cliente) se agrega
 // cuando migremos el recurso Pedido; por ahora Cliente solo guarda sus datos.
-@Entity
 public class Cliente extends Usuario {
 
-    @Enumerated(EnumType.STRING)
     private TipoCliente tipoCliente;
 
     private String direccion;
@@ -21,7 +16,7 @@ public class Cliente extends Usuario {
     private LocalDate fechaRegistro;
 
     protected Cliente() {
-        // requerido por JPA
+        // requerido por Spring Data
     }
 
     public Cliente(

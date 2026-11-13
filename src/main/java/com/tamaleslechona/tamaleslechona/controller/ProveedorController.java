@@ -25,7 +25,7 @@ public class ProveedorController {
     }
 
     @GetMapping("/{id}")
-    public Proveedor buscarPorId(@PathVariable int id) {
+    public Proveedor buscarPorId(@PathVariable String id) {
         return service.buscarPorId(id);
     }
 
@@ -41,12 +41,12 @@ public class ProveedorController {
     }
 
     @PutMapping("/{id}")
-    public Proveedor actualizar(@PathVariable int id, @RequestBody Proveedor nuevo) {
+    public Proveedor actualizar(@PathVariable String id, @RequestBody Proveedor nuevo) {
         return service.actualizar(id, nuevo);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> desactivar(@PathVariable int id) {
+    public ResponseEntity<Void> desactivar(@PathVariable String id) {
         service.desactivar(id);
         return ResponseEntity.noContent().build();
     }

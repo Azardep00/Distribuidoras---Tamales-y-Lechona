@@ -41,7 +41,7 @@ public class UsuarioController {
 
     // Un cliente solo puede ver SU PROPIO perfil; un empleado puede ver cualquiera.
     @GetMapping("/{id}")
-    public Usuario buscarPorId(@PathVariable int id, Authentication auth) {
+    public Usuario buscarPorId(@PathVariable String id, Authentication auth) {
         verificarEsPropioOEmpleado(id, auth);
         return service.buscarPorId(id);
     }
@@ -68,7 +68,7 @@ public class UsuarioController {
 
     // Un cliente solo puede editar SU PROPIO perfil; un empleado puede editar cualquiera.
     @PutMapping("/{id}")
-    public Usuario actualizar(@PathVariable int id, @RequestBody Usuario nuevo, Authentication auth) {
+    public Usuario actualizar(@PathVariable String id, @RequestBody Usuario nuevo, Authentication auth) {
         verificarEsPropioOEmpleado(id, auth);
         return service.actualizar(id, nuevo);
     }
@@ -78,8 +78,8 @@ public class UsuarioController {
     // contraseña", que no existe todavía — así que aquí exigimos ser el dueño).
     @PatchMapping("/{id}/contrasena")
     public ResponseEntity<Void> cambiarContrasena(
-            @PathVariable int id, @RequestBody CambiarContrasenaRequest body, Authentication auth) {
-        if (id != idAutenticado(auth)) {
+            @PathVariable String id, @RequestBody CambiarContrasenaRequest body, Authentication auth) {
+        if (!id.equals(idAutenticado(auth))) {
             throw new AccessDeniedException("Solo puedes cambiar tu propia contraseña.");
         }
         service.cambiarContrasena(id, body.contrasenaActual(), body.contrasenaNueva());
@@ -88,7 +88,7 @@ public class UsuarioController {
 
     // Solo empleados (ver SecurityConfig): desactivar una cuenta es acción de administración.
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> desactivar(@PathVariable int id) {
+    public ResponseEntity<Void> desactivar(@PathVariable String id) {
         service.desactivar(id);
         return ResponseEntity.noContent().build();
     }
@@ -134,15 +134,15 @@ public class UsuarioController {
         return request.getRemoteAddr();
     }
 
-    private void verificarEsPropioOEmpleado(int idSolicitado, Authentication auth) {
+    private void verificarEsPropioOEmpleado(String idSolicitado, Authentication auth) {
         boolean esEmpleado = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_EMPLEADO"));
-        if (!esEmpleado && idSolicitado != idAutenticado(auth)) {
+        if (!esEmpleado && !idSolicitado.equals(idAutenticado(auth))) {
             throw new AccessDeniedException("No puedes acceder al perfil de otro usuario.");
         }
     }
 
-    private int idAutenticado(Authentication auth) {
-        return Integer.parseInt(auth.getName());
+    private String idAutenticado(Authentication auth) {
+        return auth.getName();
     }
 }

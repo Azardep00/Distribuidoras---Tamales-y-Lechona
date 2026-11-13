@@ -28,7 +28,7 @@ public class ProductoService {
         return incluirInactivos ? repo.findAll() : repo.findByEstadoTrue();
     }
 
-    public Producto buscarPorId(int id) {
+    public Producto buscarPorId(String id) {
         return repo.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado."));
     }
@@ -38,7 +38,7 @@ public class ProductoService {
         return repo.findByNombreContainingIgnoreCase(q);
     }
 
-    public Producto actualizar(int id, Producto nuevo) {
+    public Producto actualizar(String id, Producto nuevo) {
         validar(nuevo);
         Producto actual = buscarPorId(id);
         if (!actual.getClass().equals(nuevo.getClass()))
@@ -59,14 +59,13 @@ public class ProductoService {
         return repo.save(actual);
     }
 
-    // Usado por MovimientoInventarioService después de aumentar/descontar stock
-    // (el objeto que devuelve buscarPorId queda "desconectado" de la transacción,
-    // así que hay que guardarlo explícitamente para que el cambio se persista).
+    // Guarda explícitamente un producto ya modificado (Mongo no rastrea cambios
+    // automáticamente como JPA: hay que llamar a save()).
     public Producto guardar(Producto p) {
         return repo.save(p);
     }
 
-    public void desactivar(int id) {
+    public void desactivar(String id) {
         Producto p = buscarPorId(id);
         p.setEstado(false);
         repo.save(p);

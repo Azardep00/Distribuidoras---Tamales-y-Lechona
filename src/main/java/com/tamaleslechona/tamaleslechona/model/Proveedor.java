@@ -1,16 +1,13 @@
 package com.tamaleslechona.tamaleslechona.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+@Document(collection = "proveedores")
 public class Proveedor {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idProveedor;
+    private String idProveedor;
 
     private String nombre;
     private String telefono;
@@ -19,7 +16,7 @@ public class Proveedor {
     private boolean estado;
 
     protected Proveedor() {
-        // requerido por JPA
+        // requerido por Spring Data
     }
 
     public Proveedor(String nombre, String telefono, String correo, String direccion, boolean estado) {
@@ -30,11 +27,11 @@ public class Proveedor {
         this.estado = estado;
     }
 
-    public Integer getIdProveedor() {
+    public String getIdProveedor() {
         return idProveedor;
     }
 
-    public void setIdProveedor(Integer v) {
+    public void setIdProveedor(String v) {
         idProveedor = v;
     }
 

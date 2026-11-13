@@ -2,11 +2,11 @@ package com.tamaleslechona.tamaleslechona.repository;
 
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.tamaleslechona.tamaleslechona.model.Proveedor;
 
-public interface ProveedorRepository extends JpaRepository<Proveedor, Integer> {
+public interface ProveedorRepository extends MongoRepository<Proveedor, String> {
 
     List<Proveedor> findByEstadoTrue();
 

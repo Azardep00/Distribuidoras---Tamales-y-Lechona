@@ -2,14 +2,14 @@ package com.tamaleslechona.tamaleslechona.repository;
 
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.tamaleslechona.tamaleslechona.model.MovimientoInventario;
 import com.tamaleslechona.tamaleslechona.model.TipoMovimiento;
 
-public interface MovimientoInventarioRepository extends JpaRepository<MovimientoInventario, Integer> {
+public interface MovimientoInventarioRepository extends MongoRepository<MovimientoInventario, String> {
 
-    List<MovimientoInventario> findByProducto_IdProducto(int idProducto);
+    List<MovimientoInventario> findByIdProducto(String idProducto);
 
     List<MovimientoInventario> findByTipo(TipoMovimiento tipo);
 }

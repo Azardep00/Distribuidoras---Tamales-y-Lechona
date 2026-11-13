@@ -41,7 +41,7 @@ public class UsuarioService {
         return incluirInactivos ? repo.findAll() : repo.findByEstadoTrue();
     }
 
-    public Usuario buscarPorId(int id) {
+    public Usuario buscarPorId(String id) {
         return repo.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado."));
     }
@@ -53,7 +53,7 @@ public class UsuarioService {
 
     // Nota: esta actualización NUNCA toca la contraseña; para eso está
     // cambiarContrasena(...). Así evitamos que un PUT normal la pise sin querer.
-    public Usuario actualizar(int id, Usuario nuevo) {
+    public Usuario actualizar(String id, Usuario nuevo) {
         Usuario actual = buscarPorId(id);
         if (!actual.getClass().equals(nuevo.getClass())) {
             throw new IllegalArgumentException("No puedes cambiar el tipo de usuario; crea uno nuevo.");
@@ -85,14 +85,14 @@ public class UsuarioService {
         return repo.save(actual);
     }
 
-    public void cambiarContrasena(int id, String actualPlano, String nuevaPlano) {
+    public void cambiarContrasena(String id, String actualPlano, String nuevaPlano) {
         Usuario u = buscarPorId(id);
         u.cambiarContrasena(actualPlano, nuevaPlano);
         repo.save(u);
         refreshTokenService.revocarTodosDeUsuario(u);
     }
 
-    public void desactivar(int id) {
+    public void desactivar(String id) {
         Usuario u = buscarPorId(id);
         u.setEstado(false);
         repo.save(u);

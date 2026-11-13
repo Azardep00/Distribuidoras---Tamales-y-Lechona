@@ -3,7 +3,7 @@ package com.tamaleslechona.tamaleslechona.dto;
 import com.tamaleslechona.tamaleslechona.model.Usuario;
 
 public record LoginResponse(
-        Integer idUsuario,
+        String idUsuario,
         String nombre,
         String apellido,
         String correo,
