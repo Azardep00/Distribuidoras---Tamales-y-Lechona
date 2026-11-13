@@ -117,7 +117,7 @@ public class UsuarioService {
     // fresco junto con el refresh token nuevo.
     public LoginResponse refrescarSesion(String refreshTokenRecibido) {
         RefreshToken nuevo = refreshTokenService.validarYRotar(refreshTokenRecibido);
-        Usuario u = nuevo.getUsuario();
+        Usuario u = buscarPorId(nuevo.getIdUsuario());
         String token = jwtService.generarToken(u);
         return LoginResponse.desde(u, token, nuevo.getToken());
     }

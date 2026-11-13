@@ -27,9 +27,13 @@ public class RefreshTokenService {
     }
 
     public RefreshToken crear(Usuario usuario) {
+    return crear(usuario.getIdUsuario());
+}
+
+    private RefreshToken crear(String idUsuario) {
         String valor = generarValorAleatorio();
         Instant expira = Instant.now().plus(expiracionDias, ChronoUnit.DAYS);
-        return repo.save(new RefreshToken(valor, usuario, expira));
+        return repo.save(new RefreshToken(valor, idUsuario, expira));
     }
 
     // Valida el refresh token y, si es correcto, lo ROTA: el viejo queda
@@ -41,7 +45,7 @@ public class RefreshTokenService {
                 .orElseThrow(() -> new CredencialesInvalidasException("Sesión inválida, inicia sesión de nuevo."));
 
         if (existente.isRevocado()) {
-            repo.revocarTodosDeUsuario(existente.getUsuario());
+            repo.revocarTodosDeUsuario(existente.getIdUsuario());
             throw new CredencialesInvalidasException(
                     "Se detectó un uso inválido de la sesión. Por seguridad, inicia sesión de nuevo.");
         }
@@ -53,7 +57,7 @@ public class RefreshTokenService {
         existente.setRevocado(true);
         repo.save(existente);
 
-        return crear(existente.getUsuario());
+        return crear(existente.getIdUsuario());
     }
 
     public void revocar(String valor) {
@@ -64,8 +68,8 @@ public class RefreshTokenService {
     }
 
     public void revocarTodosDeUsuario(Usuario usuario) {
-        repo.revocarTodosDeUsuario(usuario);
-    }
+       repo.revocarTodosDeUsuario(usuario.getIdUsuario());
+    }  
 
     private String generarValorAleatorio() {
         byte[] bytes = new byte[48];

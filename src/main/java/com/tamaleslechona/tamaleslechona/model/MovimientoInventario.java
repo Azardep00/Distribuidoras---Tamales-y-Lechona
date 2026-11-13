@@ -2,40 +2,40 @@ package com.tamaleslechona.tamaleslechona.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+// Colección aparte: crece sin límite, no se incrusta en el producto.
+@Document(collection = "movimientos_inventario")
 public class MovimientoInventario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idMovimiento;
+    private String idMovimiento;
 
-    @Enumerated(EnumType.STRING)
     private TipoMovimiento tipo;
-
     private int cantidad;
-
     private LocalDateTime fecha;
-
     private String motivo;
 
-    @ManyToOne
-    private Producto producto;
+    @Indexed
+    private String idProducto;
+    private String nombreProducto;
 
     // Nulo en salidas y reversiones; obligatorio en entradas.
-    @ManyToOne
-    private Proveedor proveedor;
+    @Indexed
+    private String idProveedor;
+    private String nombreProveedor;
 
-    protected MovimientoInventario() {
-        // requerido por JPA
-    }
+    // Solo vive en memoria mientras se crea el movimiento: los observers
+    // (AlertaStock, AuditoriaInventario) lo usan y no cambian. No se guarda.
+    @Transient
+    private Producto producto;
+
+    protected MovimientoInventario() {}
 
     public MovimientoInventario(
             TipoMovimiento tipo, int cantidad, String motivo, Producto producto, Proveedor proveedor) {
@@ -44,34 +44,24 @@ public class MovimientoInventario {
         this.fecha = LocalDateTime.now();
         this.motivo = motivo;
         this.producto = producto;
-        this.proveedor = proveedor;
+        this.idProducto = producto.getIdProducto();
+        this.nombreProducto = producto.getNombre();
+        if (proveedor != null) {
+            this.idProveedor = proveedor.getIdProveedor();
+            this.nombreProveedor = proveedor.getNombre();
+        }
     }
 
-    public Integer getIdMovimiento() {
-        return idMovimiento;
-    }
+    public String getIdMovimiento() { return idMovimiento; }
+    public TipoMovimiento getTipo() { return tipo; }
+    public int getCantidad() { return cantidad; }
+    public LocalDateTime getFecha() { return fecha; }
+    public String getMotivo() { return motivo; }
+    public String getIdProducto() { return idProducto; }
+    public String getNombreProducto() { return nombreProducto; }
+    public String getIdProveedor() { return idProveedor; }
+    public String getNombreProveedor() { return nombreProveedor; }
 
-    public TipoMovimiento getTipo() {
-        return tipo;
-    }
-
-    public int getCantidad() {
-        return cantidad;
-    }
-
-    public LocalDateTime getFecha() {
-        return fecha;
-    }
-
-    public String getMotivo() {
-        return motivo;
-    }
-
-    public Producto getProducto() {
-        return producto;
-    }
-
-    public Proveedor getProveedor() {
-        return proveedor;
-    }
+    @JsonIgnore
+    public Producto getProducto() { return producto; }
 }

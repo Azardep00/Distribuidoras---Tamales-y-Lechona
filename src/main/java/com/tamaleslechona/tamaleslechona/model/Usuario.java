@@ -1,28 +1,16 @@
-package com.tamaleslechona.tamaleslechona.model;
-
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.LocalDate;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import jakarta.persistence.Column;
-import jakarta.persistence.DiscriminatorColumn;
-import jakarta.persistence.DiscriminatorType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
 
-// Misma idea que Producto: clase base abstracta + herencia en una sola tabla,
-// con Cliente y Empleado como los dos tipos concretos.
-@Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "tipo_usuario", discriminatorType = DiscriminatorType.STRING)
+@Document(collection = "usuarios")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tipoUsuario")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Cliente.class, name = "Cliente"),
@@ -31,14 +19,9 @@ import jakarta.persistence.InheritanceType;
 public abstract class Usuario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idUsuario;
-
-    private String nombre;
-    private String apellido;
-    private String telefono;
-
-    @Column(unique = true)
+    private String idUsuario;
+    // ...
+    @Indexed(unique = true)
     private String correo;
 
     // WRITE_ONLY: se puede enviar en el JSON de entrada (POST/PUT), pero
@@ -73,13 +56,8 @@ public abstract class Usuario {
         this.fechaNacimiento = fechaNacimiento;
     }
 
-    public Integer getIdUsuario() {
-        return idUsuario;
-    }
-
-    public void setIdUsuario(Integer v) {
-        idUsuario = v;
-    }
+    public String getIdUsuario() { return idUsuario; }
+    public void setIdUsuario(String v) { idUsuario = v; }
 
     public String getNombre() {
         return nombre;

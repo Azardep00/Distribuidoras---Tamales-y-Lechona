@@ -2,51 +2,39 @@ package com.tamaleslechona.tamaleslechona.model;
 
 import java.time.Instant;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-// A diferencia del access token (un JWT que no se puede "borrar", solo
-// esperar a que expire), este SI vive en la base de datos: se puede
-// revocar de verdad cuando alguien cierra sesion, cambia su contraseña,
-// o cuando detectamos que un refresh token ya usado se volvio a presentar.
-@Entity
-@Table(name = "refresh_tokens")
+// Vive en la base de datos para poder revocarse de verdad (logout, cambio de
+// contraseña o reutilización detectada).
+@Document(collection = "refresh_tokens")
 public class RefreshToken {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idRefreshToken;
+    private String idRefreshToken;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Indexed(unique = true)
     private String token;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "id_usuario", nullable = false)
-    private Usuario usuario;
+    @Indexed
+    private String idUsuario;
 
-    @Column(nullable = false)
     private Instant fechaExpiracion;
 
-    @Column(nullable = false)
     private boolean revocado = false;
 
     protected RefreshToken() {}
 
-    public RefreshToken(String token, Usuario usuario, Instant fechaExpiracion) {
+    public RefreshToken(String token, String idUsuario, Instant fechaExpiracion) {
         this.token = token;
-        this.usuario = usuario;
+        this.idUsuario = idUsuario;
         this.fechaExpiracion = fechaExpiracion;
     }
 
-    public Integer getIdRefreshToken() { return idRefreshToken; }
+    public String getIdRefreshToken() { return idRefreshToken; }
     public String getToken() { return token; }
-    public Usuario getUsuario() { return usuario; }
+    public String getIdUsuario() { return idUsuario; }
     public Instant getFechaExpiracion() { return fechaExpiracion; }
     public boolean isRevocado() { return revocado; }
     public void setRevocado(boolean revocado) { this.revocado = revocado; }

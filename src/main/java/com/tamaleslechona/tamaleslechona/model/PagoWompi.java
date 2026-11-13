@@ -1,77 +1,43 @@
 package com.tamaleslechona.tamaleslechona.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Column;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+@Document(collection = "pagos_wompi")
 public class PagoWompi {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idPagoWompi;
+    private String idPagoWompi;
 
-    @ManyToOne(optional = false)
-    private Pedido pedido;
+    @Indexed
+    private String idPedido;
 
-    @Column(nullable = false, unique = true)
+    @Indexed(unique = true)
     private String referencia;
 
-    @Column(nullable = false)
     private long montoEnCentavos;
-
-    @Column(nullable = false, length = 3)
     private String moneda;
-
     private String idTransaccion;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private EstadoPagoWompi estado;
 
-    protected PagoWompi() {
-    }
+    protected PagoWompi() {}
 
     public PagoWompi(Pedido pedido, String referencia, long montoEnCentavos, String moneda) {
-        this.pedido = pedido;
+        this.idPedido = pedido.getIdPedido();
         this.referencia = referencia;
         this.montoEnCentavos = montoEnCentavos;
         this.moneda = moneda;
         this.estado = EstadoPagoWompi.PENDING;
     }
 
-    public Integer getIdPagoWompi() {
-        return idPagoWompi;
-    }
-
-    public Pedido getPedido() {
-        return pedido;
-    }
-
-    public String getReferencia() {
-        return referencia;
-    }
-
-    public long getMontoEnCentavos() {
-        return montoEnCentavos;
-    }
-
-    public String getMoneda() {
-        return moneda;
-    }
-
-    public String getIdTransaccion() {
-        return idTransaccion;
-    }
-
-    public EstadoPagoWompi getEstado() {
-        return estado;
-    }
+    public String getIdPagoWompi() { return idPagoWompi; }
+    public String getIdPedido() { return idPedido; }
+    public String getReferencia() { return referencia; }
+    public long getMontoEnCentavos() { return montoEnCentavos; }
+    public String getMoneda() { return moneda; }
+    public String getIdTransaccion() { return idTransaccion; }
+    public EstadoPagoWompi getEstado() { return estado; }
 
     public void actualizar(String idTransaccion, EstadoPagoWompi estado) {
         this.idTransaccion = idTransaccion;

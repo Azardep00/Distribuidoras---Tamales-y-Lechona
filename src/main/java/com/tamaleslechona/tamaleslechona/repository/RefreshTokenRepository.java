@@ -2,19 +2,17 @@ package com.tamaleslechona.tamaleslechona.repository;
 
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 
 import com.tamaleslechona.tamaleslechona.model.RefreshToken;
-import com.tamaleslechona.tamaleslechona.model.Usuario;
 
-public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Integer> {
+public interface RefreshTokenRepository extends MongoRepository<RefreshToken, String> {
 
     Optional<RefreshToken> findByToken(String token);
 
-    @Modifying
-    @Query("update RefreshToken r set r.revocado = true where r.usuario = :usuario and r.revocado = false")
-    void revocarTodosDeUsuario(@Param("usuario") Usuario usuario);
+    @Query("{ 'idUsuario': ?0, 'revocado': false }")
+    @Update("{ '$set': { 'revocado': true } }")
+    void revocarTodosDeUsuario(String idUsuario);
 }
