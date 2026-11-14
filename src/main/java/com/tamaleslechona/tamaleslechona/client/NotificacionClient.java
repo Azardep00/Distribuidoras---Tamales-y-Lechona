@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import orag.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 

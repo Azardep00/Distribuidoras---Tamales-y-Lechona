@@ -5,10 +5,11 @@ import java.math.BigDecimal;
 public class Tamal extends Producto {
 
     private TipoTamal tipo;
+
     private TamanoTamal tamano;
 
     protected Tamal() {
-        // requerido por JPA
+        // requerido por Spring Data
     }
 
     public Tamal(

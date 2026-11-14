@@ -1,4 +1,7 @@
+package com.tamaleslechona.tamaleslechona.model;
+
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDate;
 
 import org.springframework.data.annotation.Id;
@@ -10,6 +13,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+// Misma idea que Producto: clase base abstracta + una sola colección "usuarios",
+// con Cliente y Empleado como los dos tipos concretos.
 @Document(collection = "usuarios")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tipoUsuario")
 @JsonSubTypes({
@@ -20,7 +25,11 @@ public abstract class Usuario {
 
     @Id
     private String idUsuario;
-    // ...
+
+    private String nombre;
+    private String apellido;
+    private String telefono;
+
     @Indexed(unique = true)
     private String correo;
 
@@ -36,7 +45,7 @@ public abstract class Usuario {
     private LocalDate fechaNacimiento;
 
     protected Usuario() {
-        // requerido por JPA
+        // requerido por Spring Data
     }
 
     protected Usuario(
@@ -56,8 +65,13 @@ public abstract class Usuario {
         this.fechaNacimiento = fechaNacimiento;
     }
 
-    public String getIdUsuario() { return idUsuario; }
-    public void setIdUsuario(String v) { idUsuario = v; }
+    public String getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(String v) {
+        idUsuario = v;
+    }
 
     public String getNombre() {
         return nombre;

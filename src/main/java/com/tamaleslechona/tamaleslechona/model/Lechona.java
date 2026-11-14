@@ -3,12 +3,13 @@ package com.tamaleslechona.tamaleslechona.model;
 import java.math.BigDecimal;
 
 public class Lechona extends Producto {
-  
+
     private TamanoLechona tamano;
+
     private int numeroPorciones;
 
     protected Lechona() {
-        // requerido por JPA
+        // requerido por Spring Data
     }
 
     public Lechona(

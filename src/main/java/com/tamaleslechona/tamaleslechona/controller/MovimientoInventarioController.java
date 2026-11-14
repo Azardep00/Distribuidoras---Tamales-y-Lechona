@@ -53,7 +53,7 @@ public class MovimientoInventarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
-    @PostMapping("/reversiones")
+    @PostMapping("/reversiones")    
     public ResponseEntity<MovimientoInventario> registrarReversion(
             @RequestBody MovimientoSalidaRequest body) {
         MovimientoInventario creado =

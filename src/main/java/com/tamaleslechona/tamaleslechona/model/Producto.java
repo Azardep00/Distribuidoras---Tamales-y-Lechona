@@ -1,3 +1,5 @@
+package com.tamaleslechona.tamaleslechona.model;
+
 import java.math.BigDecimal;
 
 import org.springframework.data.annotation.Id;
@@ -6,6 +8,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+// JsonTypeInfo permite que, al convertir a JSON, se sepa si es un Tamal o una Lechona
+// Una sola colección "productos" para Tamal y Lechona: Spring Data guarda el tipo en _class.
 @Document(collection = "productos")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tipoProducto")
 @JsonSubTypes({
@@ -24,7 +28,7 @@ public abstract class Producto {
     private boolean estado;
 
     protected Producto() {
-        // requerido por JPA
+        // requerido por Spring Data
     }
 
     protected Producto(
@@ -36,8 +40,13 @@ public abstract class Producto {
         this.estado = estado;
     }
 
-    public String getIdProducto() { return idProducto; }
-    public void setIdProducto(String v) { idProducto = v; }
+    public String getIdProducto() {
+        return idProducto;
+    }
+
+    public void setIdProducto(String v) {
+        idProducto = v;
+    }
 
     public String getNombre() {
         return nombre;
