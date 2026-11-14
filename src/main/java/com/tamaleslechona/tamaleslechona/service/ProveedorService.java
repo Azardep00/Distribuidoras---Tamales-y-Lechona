@@ -4,17 +4,21 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.tamaleslechona.tamaleslechona.exception.ConflictException;
 import com.tamaleslechona.tamaleslechona.exception.RecursoNoEncontradoException;
 import com.tamaleslechona.tamaleslechona.model.Proveedor;
+import com.tamaleslechona.tamaleslechona.repository.MovimientoInventarioRepository;
 import com.tamaleslechona.tamaleslechona.repository.ProveedorRepository;
 
 @Service
 public class ProveedorService {
 
     private final ProveedorRepository repo;
+    private final MovimientoInventarioRepository movimientoRepo;
 
-    public ProveedorService(ProveedorRepository repo) {
+    public ProveedorService(ProveedorRepository repo, MovimientoInventarioRepository movimientoRepo) {
         this.repo = repo;
+        this.movimientoRepo = movimientoRepo;
     }
 
     public Proveedor registrar(Proveedor p) {
@@ -48,6 +52,19 @@ public class ProveedorService {
         return repo.save(actual);
     }
 
+    // Borrado FÍSICO: el documento desaparece de Mongo. Si el proveedor ya
+    // tiene movimientos de inventario no se puede borrar (se perdería el
+    // historial): responde 409 y se debe desactivar en su lugar.
+    public void eliminar(String id) {
+        buscarPorId(id); // 404 si no existe
+        if (movimientoRepo.existsByIdProveedor(id)) {
+            throw new ConflictException(
+                    "No se puede eliminar: el proveedor tiene movimientos de inventario. Desactívalo en su lugar.");
+        }
+        repo.deleteById(id);
+    }
+
+    // Borrado LÓGICO: el proveedor queda inactivo pero se conserva el registro.
     public void desactivar(String id) {
         Proveedor p = buscarPorId(id);
         p.setEstado(false);

@@ -12,4 +12,7 @@ public interface MovimientoInventarioRepository extends MongoRepository<Movimien
     List<MovimientoInventario> findByIdProducto(String idProducto);
 
     List<MovimientoInventario> findByTipo(TipoMovimiento tipo);
+
+    // Para decidir si un proveedor se puede borrar de verdad.
+    boolean existsByIdProveedor(String idProveedor);
 }

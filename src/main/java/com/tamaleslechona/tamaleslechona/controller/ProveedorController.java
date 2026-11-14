@@ -45,7 +45,15 @@ public class ProveedorController {
         return service.actualizar(id, nuevo);
     }
 
+    // Borrado físico (204). Responde 409 si el proveedor tiene movimientos.
     @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable String id) {
+        service.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Borrado lógico: conserva el registro pero lo marca como inactivo.
+    @PatchMapping("/{id}/desactivar")
     public ResponseEntity<Void> desactivar(@PathVariable String id) {
         service.desactivar(id);
         return ResponseEntity.noContent().build();
