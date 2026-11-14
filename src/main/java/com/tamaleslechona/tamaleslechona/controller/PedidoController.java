@@ -1,5 +1,12 @@
 package com.tamaleslechona.tamaleslechona.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -14,6 +21,7 @@ import com.tamaleslechona.tamaleslechona.model.EstadoPedido;
 import com.tamaleslechona.tamaleslechona.model.Pedido;
 import com.tamaleslechona.tamaleslechona.service.PedidoService;
 
+@Tag(name = "Pedidos", description = "Un pedido descuenta stock al crearse. Un cliente solo ve y cancela los suyos.")
 @RestController
 @RequestMapping("/api/pedidos")
 public class PedidoController {
@@ -29,6 +37,10 @@ public class PedidoController {
     // Un Cliente solo puede pedir SUS PROPIOS pedidos (idCliente debe ser el
     // suyo), y no puede pedir el listado completo sin filtrar — eso es vista
     // de administración. Un Empleado puede pedir lo que quiera.
+    @Operation(summary = "Listar pedidos (filtros opcionales: idCliente, estado)")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "401", description = "No autenticado: falta el token o no es válido")
+    @ApiResponse(responseCode = "403", description = "Sin permiso para esta acción")
     @GetMapping
     public List<Pedido> listar(
             @RequestParam(required = false) String idCliente,
@@ -46,6 +58,11 @@ public class PedidoController {
         return service.listar();
     }
 
+    @Operation(summary = "Buscar un pedido por su id")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "401", description = "No autenticado: falta el token o no es válido")
+    @ApiResponse(responseCode = "403", description = "Sin permiso para esta acción")
+    @ApiResponse(responseCode = "404", description = "No encontrado")
     @GetMapping("/{id}")
     public Pedido buscarPorId(@PathVariable String id, Authentication auth) {
         Pedido pedido = service.buscarPorId(id);
@@ -56,6 +73,11 @@ public class PedidoController {
     // Si quien crea el pedido es un Cliente, se ignora cualquier idCliente
     // que venga en el body y se usa el del token: así un cliente nunca puede
     // crear un pedido a nombre de otro con solo cambiar un número en la petición.
+    @Operation(summary = "Crear un pedido y descontar el stock (400 si no alcanza)")
+    @ApiResponse(responseCode = "201", description = "Creado")
+    @ApiResponse(responseCode = "400", description = "Datos inválidos o regla de negocio incumplida")
+    @ApiResponse(responseCode = "401", description = "No autenticado: falta el token o no es válido")
+    @ApiResponse(responseCode = "404", description = "No encontrado")
     @PostMapping
     public ResponseEntity<Pedido> crear(@RequestBody PedidoRequest body, Authentication auth) {
         String idCliente = esEmpleado(auth) ? body.idCliente() : idAutenticado(auth);
@@ -63,6 +85,12 @@ public class PedidoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
+    @Operation(summary = "Avanzar el estado de un pedido un paso (solo empleados)")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "400", description = "Datos inválidos o regla de negocio incumplida")
+    @ApiResponse(responseCode = "401", description = "No autenticado: falta el token o no es válido")
+    @ApiResponse(responseCode = "403", description = "Sin permiso para esta acción")
+    @ApiResponse(responseCode = "404", description = "No encontrado")
     @PatchMapping("/{id}/estado")
     public Pedido cambiarEstado(@PathVariable String id, @RequestBody CambiarEstadoPedidoRequest body) {
         // Ya protegido a nivel de ruta en SecurityConfig (solo ROLE_EMPLEADO
@@ -71,6 +99,12 @@ public class PedidoController {
     }
 
     // Cancela el pedido y devuelve el stock descontado (no borra el registro).
+    @Operation(summary = "Cancelar un pedido y devolver el stock")
+    @ApiResponse(responseCode = "204", description = "Operación realizada (sin contenido)")
+    @ApiResponse(responseCode = "400", description = "Datos inválidos o regla de negocio incumplida")
+    @ApiResponse(responseCode = "401", description = "No autenticado: falta el token o no es válido")
+    @ApiResponse(responseCode = "403", description = "Sin permiso para esta acción")
+    @ApiResponse(responseCode = "404", description = "No encontrado")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelar(@PathVariable String id, Authentication auth) {
         Pedido pedido = service.buscarPorId(id);
