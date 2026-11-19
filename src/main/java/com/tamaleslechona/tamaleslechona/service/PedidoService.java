@@ -190,6 +190,7 @@ public class PedidoService {
                         guardado.getIdPedido(),
                         guardado.getCorreoCliente(),
                         guardado.getEstado().name());
+                log.info("Notificación enviada del pedido #{} ({})", guardado.getIdPedido(), guardado.getEstado());
             } catch (Exception e) {
                 log.warn("No se pudo notificar el pedido #{}: {}", guardado.getIdPedido(), e.getMessage());
             }
